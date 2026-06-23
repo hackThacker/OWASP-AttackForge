@@ -1,264 +1,98 @@
+<div align="center">
+
 # 🛡️ OWASP AttackForge
 
-[![Docker](https://img.shields.io/badge/docker-compatible-blue.svg?logo=docker&logoColor=white)](https://www.docker.com)
+### A Containerized Multi App Vulnerability Range for Offensive Security Training
+
 [![License](https://img.shields.io/badge/license-Apache%202.0-green.svg)](LICENSE)
-[![Security](https://img.shields.io/badge/security-deliberately%20vulnerable-red.svg)](https://owasp.org)
-[![Platform](https://img.shields.io/badge/platform-linux%20%7C%20windows-lightgrey.svg)](https://github.com)
+[![Stars](https://img.shields.io/github/stars/hackThacker/OWASP-AttackForge?color=yellow)](https://github.com/hackThacker/OWASP-AttackForge/stargazers)
+[![Forks](https://img.shields.io/github/forks/hackThacker/OWASP-AttackForge?color=blue)](https://github.com/hackThacker/OWASP-AttackForge/network/members)
+[![Issues](https://img.shields.io/github/issues/hackThacker/OWASP-AttackForge?color=red)](https://github.com/hackThacker/OWASP-AttackForge/issues)
 
-A high-performance, security-hardened, and containerized multi-application cyber range and vulnerability lab environment developed for educational training, penetration testing practice, and security research.
+</div>
 
----
-
-## 📋 Table of Contents
-
-* [Overview](#overview)
-* [Features](#features)
-* [Architecture](#architecture)
-* [Requirements](#requirements)
-* [Supported Platforms](#supported-platforms)
-* [Installation](#installation)
-  * [Windows Setup](#windows-setup)
-  * [Linux Setup](#linux-setup)
-  * [Docker Deployment](#docker-deployment)
-* [Configuration](#configuration)
-* [Lab Environment](#lab-environment)
-* [Network Architecture](#network-architecture)
-* [Directory Structure](#directory-structure)
-* [Security Considerations](#security-considerations)
-* [Troubleshooting](#troubleshooting)
-* [Development](#development)
-* [Contributing](#contributing)
-* [Roadmap](#roadmap)
-* [License](#license)
-* [Acknowledgements](#acknowledgements)
+<p align="center">
+  <a href="#-what-is-this">What is This</a> ·
+  <a href="#-why-this-repo">Why This Repo</a> ·
+  <a href="#-topics-covered">Topics Covered</a> ·
+  <a href="#-quick-start">Quick Start</a> ·
+  <a href="#-lab-applications-and-credentials">Lab Apps</a> ·
+  <a href="#-who-is-this-for">Who Is This For</a> ·
+  <a href="#-license">License</a> ·
+  <a href="#-support">Support</a>
+</p>
 
 ---
 
-## 🔍 Overview
+## 🔍 What is This
 
-**OWASP AttackForge** is an enterprise-grade local simulation range that consolidates nine industry-standard vulnerable web applications into a single unified orchestration stack. Behind a secure Nginx reverse proxy, the environment routes custom domain requests to isolated Node.js, Java, Tomcat, and PHP application runtimes.
-
-This workspace enables cybersecurity students, developers, and red/blue teams to simulate advanced security scenarios (like web exploitation, network pivots, database injection, and log auditing) in a secure, self-contained environment without exposing the host to external vulnerabilities.
-
----
-
-## ⚡ Features
-
-*   **Unified Orchestration:** Launch 9 distinct vulnerable web applications with a single command.
-*   **Production-Grade Reverse Proxy:** Nginx routes traffic securely with auto-generated wildcard SSL certificates.
-*   **Hardened Non-Root Security:** Containers operate as non-root service accounts (`nginx`, `node`, `tomcat`, `webgoat`, `www-data`, and `nobody`) to prevent host compromise.
-*   **Automatic Database Provisioning:** Database tables, schemas, and credentials are set up dynamically on startup by an asynchronous initializer service.
-*   **CPU & Memory Capping:** Resource limit constraints prevent denial-of-service loops from exhausting host memory or processor cycles.
-*   **Custom Local Domains:** Access applications cleanly via subdomains of `*.hackthacker.lab`.
-
----
-
-## 🏛️ Architecture
-
-The architecture isolates the backend applications within a private bridge network while exposing only Nginx to the host.
-
-### Conceptual Routing Diagram
+**OWASP AttackForge** is a self contained cyber range that boots nine industry standard vulnerable web applications behind a single Nginx reverse proxy. One `docker compose up` spins up DVWA, Mutillidae II, bWAPP, XVWA, VWA, Juice Shop, WebGoat, WebWolf, and a Tomcat manager console, each in its own hardened, non root container, with database provisioning handled automatically.
 
 ```text
-User Browser / CLI
-       │
-       ▼ (HTTPS: Port 443 / HTTP: Port 80)
-┌────────────────────────────────────────────────────────┐
-│                      Nginx Proxy                       │
-└───┬──────────────┬──────────────┬──────────────────┬───┘
-    │              │              │                  │
-    ▼              ▼              ▼                  ▼
-┌───────┐      ┌───────┐      ┌───────┐          ┌───────┐
-│ DVWA  │      │ bWAPP │      │ XVWA  │          │ VWA   │
-│ (PHP) │      │ (PHP) │      │ (PHP) │          │ (PHP) │
-└───┬───┘      └───┬───┘      └───┬───┘          └───┬───┘
-    │              │              │                  │
-    └──────────────┼──────────────┼──────────────────┘
-                   ▼
-             ┌───────────┐
-             │  MariaDB  │ (Private Port 3306)
-             └───────────┘
+Browser
+   │  HTTPS (443) / HTTP (80)
+   ▼
+┌─────────────────────────────┐
+│         Nginx Proxy         │
+└──┬───┬───┬───┬───┬───┬───┬──┘
+   │   │   │   │   │   │   │
+ DVWA bWAPP XVWA VWA Mutillidae JuiceShop WebGoat/WebWolf  Tomcat
+   │   │   │   │   │
+   └───┴───┴───┴───┴──► MariaDB (private, port 3306)
 ```
 
-### Full Architecture Map
-
-```text
-Host Machine Interface (Localhost)
-       │
-       ├─► [Port 80/443] ──────► Nginx Router (Proxy Server)
-       │                            │
-       │  ┌─────────────────────────┼────────────────────────┐
-       │  │ (hackthacker Network)   │                        │
-       │  │                         ├─► mutillidae:8080      │
-       │  │                         ├─► dvwa:8080 ─────────┐ │
-       │  │                         ├─► bwapp:8080 ────────┼─┤
-       │  │                         ├─► xvwa:8080 ─────────┼─┤
-       │  │                         ├─► vwa:8080 ──────────┼─┤
-       │  │                         ├─► juiceshop:3000     │ │
-       │  │                         ├─► webgoat:8080 ◄───┐ │ │
-       │  │                         ├─► webwolf:9090 ────┘ │ │
-       │  │                         └─► tomcat:8080        │ │
-       │  │                                                ▼ │
-       │  │                                              [db]│
-       │  └──────────────────────────────────────────────────┘
-```
+> [!CAUTION]
+> **Deliberately vulnerable environment.** Every application here ships with real, unpatched RCE, SQL injection, and path traversal flaws by design. Run it only on an isolated host. Never expose ports 80/443 to the public internet or deploy on a shared or production network.
 
 ---
 
-## ⚙️ Requirements
+## 🤔 Why This Repo
 
-### Hardware Requirements
-*   **CPU:** Dual-core processor or higher (Intel VT-x / AMD-V virtualization support enabled).
-*   **RAM:** 8 GB minimum (12 GB or higher recommended).
-*   **Storage:** 5 GB of free SSD space.
-
-### Software Requirements
-*   **Docker Engine:** Version 20.10.0 or higher.
-*   **Docker Compose:** Compose V2 support (CLI plugin).
-*   **Git Client:** Any standard command-line Git.
-
-### Supported Operating Systems
-*   Windows 10 / 11 (with WSL2 backend configured)
-*   Windows Server 2022 or higher
-*   Ubuntu Linux (20.04 LTS / 22.04 LTS / 24.04 LTS)
-*   Debian Linux (11 / 12)
-*   Kali Linux
-*   Rocky Linux / RHEL / Fedora
-*   Arch Linux
+| Without OWASP AttackForge | With OWASP AttackForge |
+| :--- | :--- |
+| Spin up and patch 9 separate VMs or local installs | One script and one `docker compose up` brings up the whole range |
+| Conflicting PHP, Java, and Node runtime versions on one host | Each app runs isolated in its own container |
+| Manually create databases and schemas per app | An initializer service provisions the database on first boot |
+| Apps exposed directly on their own host ports | Nginx is the only service that touches the host network |
+| Containers commonly run as root | Every container runs as a dedicated non root service account |
+| No resource limits, one runaway app can choke the host | CPU and memory caps are set per container |
 
 ---
 
-# 🚀 Installation
+## 📚 Topics Covered
 
-## Windows Setup
+* OWASP Top 10 vulnerability classes: SQL injection, XSS, CSRF, IDOR, broken authentication, SSRF, path traversal, command injection, insecure deserialization, and security misconfiguration
+* Multi container orchestration and service health checks with Docker Compose
+* Nginx as a reverse proxy with auto generated wildcard SSL certificates
+* Database isolation and automatic schema provisioning with MariaDB
+* Non root container hardening across PHP, Java, and Node.js runtimes
+* Private bridge networking that exposes only one entry point to the host
+* Resource constrained deployment for low spec training hardware
 
-### Prerequisites
-1. Ensure **WSL2** (Windows Subsystem for Linux) is installed. Run `wsl --install` in PowerShell.
-2. Enable **Virtual Machine Platform** and **Hyper-V** features in Windows Features.
+---
 
-### Install Docker Desktop
-1. Download and install [Docker Desktop for Windows](https://www.docker.com/products/docker-desktop/).
-2. In Settings -> General, ensure **"Use the WSL 2 based engine"** is checked.
-3. In Settings -> Resources -> WSL Integration, enable integration for your default distro.
+## 🚀 Quick Start
 
-### Clone Repository
-Open PowerShell and clone the repository:
-```powershell
-git clone https://github.com/HackThackerLabs/OWASP-AttackForge.git
+```bash
+git clone https://github.com/hackThacker/OWASP-AttackForge.git
 cd OWASP-AttackForge
-```
-
-### Start Environment
-```powershell
-./docker-install.sh
-```
-*Note: If `./docker-install.sh` fails due to execution policy or script restrictions, start the container stack manually using:*
-```powershell
-docker compose up -d
-```
-
-### Verify Services
-```powershell
-docker ps
-```
-Ensure all containers show `Up (healthy)`.
-
-### Access Applications
-To resolve the custom domains on Windows, refer to the [Hosts File Configuration](#hosts-file-configuration) section.
-
----
-
-## Linux Setup
-
-### Install Dependencies
-
-**Ubuntu / Debian / Kali Linux:**
-```bash
-sudo apt update
-sudo apt install docker.io docker-compose-plugin git curl -y
-sudo systemctl enable --now docker
-```
-
-**Fedora / Rocky Linux / RHEL:**
-```bash
-sudo dnf install docker docker-compose git curl -y
-sudo systemctl enable --now docker
-```
-
-**Arch Linux:**
-```bash
-sudo pacman -S docker docker-compose git curl --noconfirm
-sudo systemctl enable --now docker
-```
-
-### Clone Repository
-```bash
-git clone https://github.com/HackThackerLabs/OWASP-AttackForge.git
-cd OWASP-AttackForge
-```
-
-### Start Environment
-Deploy with the installer script (will automatically configure host DNS mapping):
-```bash
 sudo ./docker-install.sh
 ```
-Or start manually via raw compose:
-```bash
-docker compose up -d
-```
 
-### Verify Deployment
+The installer copies `.env.example` to `.env`, builds and starts all 12 containers, and maps the lab domains into your hosts file on Linux automatically.
+
+To run it manually instead:
+
 ```bash
+cp .env.example .env
+docker compose up --build -d
 docker ps
 ```
 
----
-
-## Docker Deployment
-
-The AttackForge stack maps private ports to restrict direct network exposure. The Nginx reverse proxy serves as the sole gateway.
-
-**Orchestrate and Manage Commands:**
-```bash
-# Pull the latest base images
-docker compose pull
-
-# Compile custom configurations and run in background
-docker compose up --build -d
-
-# Trace container startup logs
-docker compose logs -f
-
-# Verify service health and metrics
-./docker-check.sh
-
-# Tear down the stack and delete database persistent storage volumes
-./docker-uninstall.sh
-```
-
----
-
-## 🔧 Configuration
-
-### Environment Variables
-Adjust parameters in the `.env` configuration file (generated from `.env.example` at installation):
-
-| Variable | Default Value | Description |
-| :--- | :--- | :--- |
-| `DOMAIN` | `hackthacker.lab` | Base subdomain suffix |
-| `SSL_ORG` | `OWASP AttackForge` | Subject organization in self-signed SSL certs |
-| `DB_USER` | `hackthacker` | Default database application username |
-| `DB_PASS` | `hackthacker` | Default database application password |
-| `MARIADB_ROOT_PASSWORD`| `hackthacker` | Root administrator password for MariaDB |
-
-### Hosts File Configuration
-To access the applications by their domains, append the following mappings to your hosts configuration file:
-
-**Windows System Path:** `C:\Windows\System32\drivers\etc\hosts` (Open Notepad as Administrator)  
-**Linux / macOS Path:** `/etc/hosts` (Edit using `sudo nano /etc/hosts`)
+**Requirements:** Docker Engine 20.10+, Docker Compose V2, 8 GB RAM minimum (12 GB recommended), 5 GB free disk space. Windows users need WSL2 with Docker Desktop and must map the domains by hand in `C:\Windows\System32\drivers\etc\hosts`. On Linux or macOS, edit `/etc/hosts` (the install script does this for you on Linux).
 
 ```text
-# HackThackerLabs AttackForge Cyber Range
+# Add to your hosts file if not using docker-install.sh
 127.0.0.1 mutillidae.hackthacker.lab
 127.0.0.1 dvwa.hackthacker.lab
 127.0.0.1 bwapp.hackthacker.lab
@@ -272,122 +106,107 @@ To access the applications by their domains, append the following mappings to yo
 
 ---
 
-## 🎯 Lab Environment
+## 🧪 Lab Applications and Credentials
 
-| Application | Domain Access URL | Default User | Default Password | Port |
-| :--- | :--- | :--- | :--- | :--- |
-| **Mutillidae II** | [https://mutillidae.hackthacker.lab](https://mutillidae.hackthacker.lab) | `admin` | `adminpass` | `443` |
-| **DVWA** | [https://dvwa.hackthacker.lab/login.php](https://dvwa.hackthacker.lab/login.php) | `admin` | `password` | `443` |
-| **bWAPP** | [https://bwapp.hackthacker.lab/login.php](https://bwapp.hackthacker.lab/login.php) | `bee` | `bug` | `443` |
-| **XVWA** | [https://xvwa.hackthacker.lab](https://xvwa.hackthacker.lab) | `admin` | `admin` | `443` |
-| **VWA** | [https://vwa.hackthacker.lab](https://vwa.hackthacker.lab) | `admin` | `password` | `443` |
-| **Juice Shop** | [https://juiceshop.hackthacker.lab](https://juiceshop.hackthacker.lab) | *(Register in UI)* | *(Register in UI)* | `443` |
-| **WebGoat** | [https://webgoat.hackthacker.lab/WebGoat/login](https://webgoat.hackthacker.lab/WebGoat/login) | *(Create in UI)* | *(Create in UI)* | `443` |
-| **WebWolf** | [https://webwolf.hackthacker.lab/login](https://webwolf.hackthacker.lab/login) | *(WebGoat account)*| *(WebGoat account)*| `443` |
-| **Tomcat Console**| [https://tomcat.hackthacker.lab](https://tomcat.hackthacker.lab) | `hackthacker` | `hackthacker` | `443` |
+| Application | URL | Username | Password |
+| :--- | :--- | :--- | :--- |
+| Mutillidae II | `https://mutillidae.hackthacker.lab` | `admin` | `adminpass` |
+| DVWA | `https://dvwa.hackthacker.lab/login.php` | `admin` | `password` |
+| bWAPP | `https://bwapp.hackthacker.lab/login.php` | `bee` | `bug` |
+| XVWA | `https://xvwa.hackthacker.lab` | `admin` | `admin` |
+| VWA | `https://vwa.hackthacker.lab` | `admin` | `password` |
+| Juice Shop | `https://juiceshop.hackthacker.lab` | register in UI | register in UI |
+| WebGoat | `https://webgoat.hackthacker.lab/WebGoat/login` | create in UI | create in UI |
+| WebWolf | `https://webwolf.hackthacker.lab/login` | WebGoat account | WebGoat account |
+| Tomcat Manager | `https://tomcat.hackthacker.lab` | `hackthacker` | `hackthacker` |
 
 ---
 
-## 📁 Directory Structure
+## 📁 Repo Files
 
 ```text
 OWASP-AttackForge/
 ├── docker/
-│   ├── db/                 # SQL database setup and permissions
-│   ├── initializer/        # HTTP API migration auto-initializer scripts
-│   ├── juiceshop/          # NodeJS non-root context configs
-│   ├── nginx/              # Nginx template engine configurations
-│   ├── php/                # Hardened bookworm apache PHP environment
-│   ├── tomcat/             # Debian temurin JRE tomcat files
-│   ├── webgoat/            # WebGoat Alpine JRE security limits
-│   └── webwolf/            # WebWolf database links configuration
-├── docker-compose.yml      # Core production deployment configuration
-├── docker-compose.dev.yml  # Development host port mappings overrides
-├── docker-check.sh         # Active endpoint curl status validator
-├── docker-install.sh       # Deploy stack and hosts mapper script
-├── docker-uninstall.sh     # Cleanup stack and volume wiper script
-├── README.md               # Main repository documentation
-└── .env.example            # Environment configuration template
+│   ├── db/
+│   │   └── init.sql
+│   ├── initializer/
+│   │   ├── Dockerfile
+│   │   └── init.sh
+│   ├── juiceshop/
+│   │   └── Dockerfile
+│   ├── nginx/
+│   │   ├── Dockerfile
+│   │   ├── default.conf.template
+│   │   └── entrypoint.sh
+│   ├── php/
+│   │   ├── Dockerfile.php
+│   │   ├── disable_strict_mysqli.php
+│   │   ├── entrypoint.sh
+│   │   └── owasp-lab.ini
+│   ├── tomcat/
+│   │   ├── Dockerfile
+│   │   ├── entrypoint.sh
+│   │   └── tomcat-users.xml
+│   ├── webgoat/
+│   │   └── Dockerfile
+│   └── webwolf/
+│       └── Dockerfile
+├── .dockerignore
+├── .env.example
+├── docker-check.sh
+├── docker-compose.dev.yml
+├── docker-compose.yml
+├── docker-install.sh
+├── docker-uninstall.sh
+└── README.md
 ```
 
 ---
 
-## ⚠️ Security Considerations
+## 🎯 Who is This For
 
-> [!CAUTION]
-> **DELIBERATELY VULNERABLE ENVIRONMENT**
-> *   This project contains software with critical remote code execution (RCE), SQL injection, and path traversal vulnerabilities.
-> *   **DO NOT** deploy this stack on public, shared, production, or untrusted networks.
-> *   **DO NOT** expose Nginx ports 80/443 directly to the public internet.
-> *   Ensure the docker daemon host is secured and isolated within host-only loopbacks.
+```text
+Security trainers running classroom or workshop labs
+Students practicing OWASP Top 10 exploitation hands on
+Red team members rehearsing web attack chains before an engagement
+Blue team analysts generating live exploitation traffic for detection testing
+Bug bounty hunters sharpening manual testing skills before live targets
+Anyone who wants 9 vulnerable apps running locally without the DevOps pain
+```
 
 ---
 
 ## 🔧 Troubleshooting
 
-### Containers Not Starting / Restarting Loops
-1. Check Nginx logs to confirm if any host is unreachable:
-   ```bash
-   docker logs attackforge-nginx
-   ```
-2. Verify that there are no port binding conflicts on the host (like local IIS or Apache instances listening on ports 80 or 443).
-
-### DNS Resolution Issues
-* If you cannot connect to the applications using browser domains, check that the host mappings are loaded correctly:
-  ```bash
-  ping juiceshop.hackthacker.lab
-  ```
-  It should resolve successfully to `127.0.0.1`. If not, review the hosts mappings editing steps.
-
-### Port Conflicts
-* In Windows, port `80` is often locked by standard OS services (e.g. Web Deployment Agent, IIS, or Skype). Run `netstat -ano | findstr :80` in command prompt to identify the process ID causing conflicts, stop the respective service, and try again.
-
-### Resource Constraints
-* WebGoat and WebWolf run on JVMs and require up to `1.5 GB` of memory combined. If they crash silently, check your Docker RAM settings and increase WSL2 resource limits by creating a `%USERPROFILE%\.wslconfig` file:
-  ```text
-  [wsl2]
-  memory=4GB
-  ```
+* **Containers stuck restarting:** check `docker logs attackforge-nginx` and confirm no other service (IIS, Apache, Skype) already holds ports 80 or 443.
+* **Domains will not resolve:** run `ping juiceshop.hackthacker.lab`, it should resolve to `127.0.0.1`. If not, recheck your hosts file entries.
+* **WebGoat or WebWolf crash silently:** they need up to 1.5 GB combined. On Windows, raise the WSL2 memory cap in `%USERPROFILE%\.wslconfig` with a `memory=4GB` entry under `[wsl2]`.
 
 ---
 
-## 🛠️ Development
+## 📊 Repo Stats
 
-To override the production network boundaries and expose all microservice ports directly for isolated debugging, run the dev overrides command:
-```bash
-docker compose -f docker-compose.yml -f docker-compose.dev.yml up -d
-```
-
----
-
-## 🤝 Contributing
-
-Contributions to OWASP AttackForge are welcome!
-1. Fork the Project Repository.
-2. Create a Feature Branch (`git checkout -b feature/AmazingFeature`).
-3. Commit changes (`git commit -m 'Add some AmazingFeature'`).
-4. Push to the Branch (`git push origin feature/AmazingFeature`).
-5. Open a Pull Request.
+![Top Language](https://img.shields.io/github/languages/top/hackThacker/OWASP-AttackForge)
+![Languages](https://img.shields.io/github/languages/count/hackThacker/OWASP-AttackForge)
+![Last Commit](https://img.shields.io/github/last-commit/hackThacker/OWASP-AttackForge)
+![Repo Size](https://img.shields.io/github/repo-size/hackThacker/OWASP-AttackForge)
 
 ---
 
-## 🗺️ Roadmap
-
-*   [ ] Add Kali Linux pentest client image container within the orchestration.
-*   [ ] Configure local logging pipeline using Grafana/Prometheus logs collector.
-*   [ ] Introduce OWASP security audit automation scripts.
-*   [ ] Expand documentation on specific vulnerabilities covered in the range.
-
----
-
-## 📄 License
+## ⚖️ License
 
 Distributed under the Apache License 2.0. See `LICENSE` for details.
 
 ---
 
-## 💖 Acknowledgements
+## 💬 Support
 
-*   Upstream vulnerability project creators: [DVWA](https://github.com/digininja/DVWA), [Mutillidae II](https://github.com/webpwnized/mutillidae), [bWAPP](https://github.com/iMoon07/bWAPPs), [XVWA](https://github.com/s4n7h0/xvwa), [VWA](https://github.com/hummingbirdscyber/Vulnerable-Web-Application), [Juice Shop](https://github.com/juice-shop/juice-shop), [WebGoat & WebWolf](https://github.com/WebGoat/WebGoat).
+🐛 Found a bug or have a question? Open an issue on the [Issues page](https://github.com/hackThacker/OWASP-AttackForge/issues).
 
-# OWASP-AttackForge
+---
+
+<div align="center">
+
+Made with ❤️ by [hackthacker](https://github.com/hackThacker)
+
+</div>

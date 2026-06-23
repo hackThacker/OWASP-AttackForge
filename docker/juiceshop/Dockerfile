@@ -20,6 +20,7 @@ WORKDIR /app
 
 # Copy application files and ensure ownership is set to the default 'node' user
 COPY --from=downloader --chown=node:node /app /app
+RUN chown node:node /app
 
 # Configure execution environment
 USER node

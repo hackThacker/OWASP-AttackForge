@@ -56,6 +56,8 @@ if [ "$APP_NAME" = "vwa" ]; then
   find /var/www/html -type f -name "*.php" -exec sed -i "s/\$dbpass = '';/\$dbpass = '${DB_PASS}';/g" {} +
   find /var/www/html -type f -name "*.php" -exec sed -i "s/\$username = \"root\";/\$username = \"${DB_USER}\";/g" {} +
   find /var/www/html -type f -name "*.php" -exec sed -i "s/\$password = \"\";/\$password = \"${DB_PASS}\";/g" {} +
+  find /var/www/html -type f -name "*.php" -exec sed -i "s/\$dbhost = 'localhost';/\$dbhost = '${DB_HOST}';/g" {} +
+  find /var/www/html -type f -name "*.php" -exec sed -i "s/\$dbhost = \"localhost\";/\$dbhost = \"${DB_HOST}\";/g" {} +
   
   # Ensure VWA connects to the containerised database hostname instead of localhost
   find /var/www/html -type f -name "*.php" -exec sed -i "s/mysqli_connect('localhost'/mysqli_connect('${DB_HOST}'/g" {} +

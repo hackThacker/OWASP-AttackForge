@@ -31,6 +31,57 @@ fi
 source .env
 LAB_DOMAIN="${DOMAIN:-hackthacker.lab}"
 
+# Check swap space (Linux only) to prevent memory-induced CPU soft lockups
+if [[ "$OSTYPE" == "linux-gnu"* ]]; then
+  echo -e "${CYN}[*] Verifying host swap configuration...${RST}"
+  TOTAL_SWAP=$(free -m | awk '/Swap:/ {print $2}')
+  if [ -z "$TOTAL_SWAP" ]; then
+    TOTAL_SWAP=0
+  fi
+  if [ "$TOTAL_SWAP" -lt 2048 ]; then
+    echo -e "${YLW}[!] Low swap space detected (${TOTAL_SWAP}MB). A minimum of 2GB swap is recommended.${RST}"
+    if [ "$EUID" -eq 0 ] || command -v sudo >/dev/null; then
+      echo -e "${CYN}[*] Attempting to auto-configure a 4GB swapfile for stabilization...${RST}"
+      run_as_root() {
+        if [ "$EUID" -eq 0 ]; then
+          "$@"
+        else
+          sudo "$@"
+        fi
+      }
+      
+      if [ ! -f /swapfile ]; then
+        SWAP_SUCCESS=0
+        if run_as_root fallocate -l 4G /swapfile 2>/dev/null; then
+          SWAP_SUCCESS=1
+        elif run_as_root dd if=/dev/zero of=/swapfile bs=1M count=4096 status=none 2>/dev/null; then
+          SWAP_SUCCESS=1
+        fi
+        
+        if [ "$SWAP_SUCCESS" -eq 1 ]; then
+          run_as_root chmod 600 /swapfile
+          run_as_root mkswap /swapfile >/dev/null
+          run_as_root swapon /swapfile 2>/dev/null || true
+          if ! grep -q "/swapfile" /etc/fstab; then
+            echo "/swapfile none swap sw 0 0" | run_as_root tee -a /etc/fstab >/dev/null
+          fi
+          echo -e "${GRN}[✓] 4GB swapfile successfully created and enabled!${RST}\n"
+        else
+          echo -e "${RED}[x] Failed to create swapfile. Please ensure you have sufficient disk space.${RST}\n"
+        fi
+      else
+        echo -e "${YLW}[!] /swapfile already exists. Activating...${RST}"
+        run_as_root swapon /swapfile 2>/dev/null || true
+        echo -e "${GRN}[✓] Swap file activated.${RST}\n"
+      fi
+    else
+      echo -e "${RED}[x] Sudo privileges are required to create a swapfile. Please configure swap manually.${RST}\n"
+    fi
+  else
+    echo -e "${GRN}[✓] Swap space is sufficient (${TOTAL_SWAP}MB).${RST}\n"
+  fi
+fi
+
 # 2. Prerequisites Check
 if ! command -v docker >/dev/null; then
   echo -e "${RED}[x] Error: Docker is not installed. Please install Docker and try again.${RST}"

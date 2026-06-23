@@ -260,6 +260,8 @@ services:
     restart: unless-stopped
     networks:
       - hackthacker
+    environment:
+      - NODE_OPTIONS=--max-old-space-size=160
     deploy:
       resources:
         limits:
@@ -278,8 +280,9 @@ services:
     networks:
       - hackthacker
     environment:
-      - WEBWOLF_HOST=webwolf
+      - WEBWOLF_HOST=attackforge-webwolf
       - WEBWOLF_PORT=9090
+      - JAVA_TOOL_OPTIONS=-XX:+UseSerialGC -XX:TieredStopAtLevel=1 -Xmx512m
     deploy:
       resources:
         limits:
@@ -289,7 +292,8 @@ services:
       test: ["CMD-SHELL", "nc -z localhost 8080 || exit 1"]
       interval: 15s
       timeout: 5s
-      retries: 3
+      retries: 5
+      start_period: 90s
 
   webwolf:
     build:
@@ -303,19 +307,21 @@ services:
       webgoat:
         condition: service_healthy
     environment:
-      - SPRING_DATASOURCE_URL=jdbc:hsqldb:hsql://webgoat:9001/webgoat
-      - WEBGOAT_HOST=webgoat
+      - SPRING_DATASOURCE_URL=jdbc:hsqldb:hsql://attackforge-webgoat:9001/webgoat
+      - WEBGOAT_HOST=attackforge-webgoat
       - WEBGOAT_PORT=8080
+      - JAVA_TOOL_OPTIONS=-XX:+UseSerialGC -XX:TieredStopAtLevel=1 -Xmx256m
     deploy:
       resources:
         limits:
           cpus: '0.25'
-          memory: 256M
+          memory: 384M
     healthcheck:
       test: ["CMD-SHELL", "nc -z localhost 9090 || exit 1"]
       interval: 15s
       timeout: 5s
-      retries: 3
+      retries: 5
+      start_period: 90s
 
   # ----------------------------------------------------------------------------
   # Tomcat Container
@@ -331,6 +337,7 @@ services:
     environment:
       - TOMCAT_USER=${TOMCAT_USER:-${DB_USER:-hackthacker}}
       - TOMCAT_PASS=${TOMCAT_PASS:-${DB_PASS:-hackthacker}}
+      - JAVA_TOOL_OPTIONS=-XX:+UseSerialGC -XX:TieredStopAtLevel=1 -Xmx256m
     deploy:
       resources:
         limits:
@@ -340,7 +347,8 @@ services:
       test: ["CMD-SHELL", "curl -f http://localhost:8080/ || exit 1"]
       interval: 10s
       timeout: 5s
-      retries: 3
+      retries: 5
+      start_period: 60s
 
   # ----------------------------------------------------------------------------
   # Initializer Service (Runs migrations and exits)
