@@ -389,6 +389,5 @@ Distributed under the Apache License 2.0. See `LICENSE` for details.
 ## 💖 Acknowledgements
 
 *   Upstream vulnerability project creators: [DVWA](https://github.com/digininja/DVWA), [Mutillidae II](https://github.com/webpwnized/mutillidae), [bWAPP](https://github.com/iMoon07/bWAPPs), [XVWA](https://github.com/s4n7h0/xvwa), [VWA](https://github.com/hummingbirdscyber/Vulnerable-Web-Application), [Juice Shop](https://github.com/juice-shop/juice-shop), [WebGoat & WebWolf](https://github.com/WebGoat/WebGoat).
-*   Inspired by the work of [iMoon](https://github.com/iMoon07) and [Taro Lay](https://github.com/tarolay) on the original host installer.
-# OWASP-AttackForge
+
 # OWASP-AttackForge
