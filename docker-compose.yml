@@ -1,0 +1,368 @@
+networks:
+  hackthacker:
+    driver: bridge
+    name: hackthacker
+
+volumes:
+  mariadb-data:
+    name: attackforge-mariadb-data
+
+services:
+  # ----------------------------------------------------------------------------
+  # Database Layer (Shared by all PHP Apps)
+  # ----------------------------------------------------------------------------
+  db:
+    image: mariadb:11.4
+    container_name: attackforge-db
+    restart: unless-stopped
+    networks:
+      - hackthacker
+    environment:
+      MARIADB_USER: ${DB_USER:-hackthacker}
+      MARIADB_PASSWORD: ${DB_PASS:-hackthacker}
+      MARIADB_ROOT_PASSWORD: ${MARIADB_ROOT_PASSWORD:-hackthacker}
+    volumes:
+      - mariadb-data:/var/lib/mysql
+      - ./docker/db/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    security_opt:
+      - no-new-privileges:true
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 1G
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+    healthcheck:
+      test: ["CMD", "mariadb-admin", "ping", "-u$${DB_USER:-hackthacker}", "-p$${DB_PASS:-hackthacker}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ----------------------------------------------------------------------------
+  # Nginx Router & Proxy (Attacker Frontdoor Interface)
+  # ----------------------------------------------------------------------------
+  nginx:
+    build:
+      context: .
+      dockerfile: docker/nginx/Dockerfile
+    container_name: attackforge-nginx
+    restart: unless-stopped
+    ports:
+      - "80:8080"
+      - "443:8443"
+    networks:
+      - hackthacker
+    environment:
+      - DOMAIN=${DOMAIN:-hackthacker.lab}
+      - SSL_ORG=${SSL_ORG:-OWASP AttackForge}
+    depends_on:
+      mutillidae:
+        condition: service_healthy
+      dvwa:
+        condition: service_healthy
+      bwapp:
+        condition: service_healthy
+      xvwa:
+        condition: service_healthy
+      vwa:
+        condition: service_healthy
+      juiceshop:
+        condition: service_healthy
+      tomcat:
+        condition: service_healthy
+      webgoat:
+        condition: service_healthy
+      webwolf:
+        condition: service_healthy
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 256M
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+    healthcheck:
+      test: ["CMD-SHELL", "curl -k -f https://localhost:8443/ || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+
+  # ----------------------------------------------------------------------------
+  # PHP Vulnerable Applications Tier
+  # ----------------------------------------------------------------------------
+  mutillidae:
+    build:
+      context: .
+      dockerfile: docker/php/Dockerfile.php
+      args:
+        APP_SOURCE_URL: "https://github.com/webpwnized/mutillidae.git"
+        APP_NAME: "mutillidae"
+    container_name: attackforge-mutillidae
+    restart: unless-stopped
+    networks:
+      - hackthacker
+    environment:
+      - APP_NAME=mutillidae
+      - APACHE_DOCROOT=/var/www/html/src
+      - DB_USER=${DB_USER:-hackthacker}
+      - DB_PASS=${DB_PASS:-hackthacker}
+      - DB_HOST=db
+    depends_on:
+      db:
+        condition: service_healthy
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 256M
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8080/index.php || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
+  dvwa:
+    build:
+      context: .
+      dockerfile: docker/php/Dockerfile.php
+      args:
+        APP_SOURCE_URL: "https://github.com/digininja/DVWA.git"
+        APP_NAME: "dvwa"
+    container_name: attackforge-dvwa
+    restart: unless-stopped
+    networks:
+      - hackthacker
+    environment:
+      - APP_NAME=dvwa
+      - DB_USER=${DB_USER:-hackthacker}
+      - DB_PASS=${DB_PASS:-hackthacker}
+      - DB_HOST=db
+    depends_on:
+      db:
+        condition: service_healthy
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 256M
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8080/setup.php || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
+  bwapp:
+    build:
+      context: .
+      dockerfile: docker/php/Dockerfile.php
+      args:
+        APP_SOURCE_URL: "https://github.com/iMoon07/bWAPPs.git"
+        APP_NAME: "bwapp"
+    container_name: attackforge-bwapp
+    restart: unless-stopped
+    networks:
+      - hackthacker
+    environment:
+      - APP_NAME=bwapp
+      - APACHE_DOCROOT=/var/www/html/bWAPP
+      - DB_USER=${DB_USER:-hackthacker}
+      - DB_PASS=${DB_PASS:-hackthacker}
+      - DB_HOST=db
+    depends_on:
+      db:
+        condition: service_healthy
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 256M
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8080/install.php || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
+  xvwa:
+    build:
+      context: .
+      dockerfile: docker/php/Dockerfile.php
+      args:
+        APP_SOURCE_URL: "https://github.com/s4n7h0/xvwa.git"
+        APP_NAME: "xvwa"
+    container_name: attackforge-xvwa
+    restart: unless-stopped
+    networks:
+      - hackthacker
+    environment:
+      - APP_NAME=xvwa
+      - DB_USER=${DB_USER:-hackthacker}
+      - DB_PASS=${DB_PASS:-hackthacker}
+      - DB_HOST=db
+    depends_on:
+      db:
+        condition: service_healthy
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 256M
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8080/index.php || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
+  vwa:
+    build:
+      context: .
+      dockerfile: docker/php/Dockerfile.php
+      args:
+        APP_SOURCE_URL: "https://github.com/hummingbirdscyber/Vulnerable-Web-Application.git"
+        APP_NAME: "vwa"
+    container_name: attackforge-vwa
+    restart: unless-stopped
+    networks:
+      - hackthacker
+    environment:
+      - APP_NAME=vwa
+      - DB_USER=${DB_USER:-hackthacker}
+      - DB_PASS=${DB_PASS:-hackthacker}
+      - DB_HOST=db
+    depends_on:
+      db:
+        condition: service_healthy
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 256M
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8080/index.php || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
+  # ----------------------------------------------------------------------------
+  # Node.js Application Tier (Juice Shop)
+  # ----------------------------------------------------------------------------
+  juiceshop:
+    build:
+      context: .
+      dockerfile: docker/juiceshop/Dockerfile
+    container_name: attackforge-juiceshop
+    restart: unless-stopped
+    networks:
+      - hackthacker
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 512M
+
+  # ----------------------------------------------------------------------------
+  # Java Application Tier (WebGoat & WebWolf)
+  # ----------------------------------------------------------------------------
+  webgoat:
+    build:
+      context: .
+      dockerfile: docker/webgoat/Dockerfile
+    container_name: attackforge-webgoat
+    restart: unless-stopped
+    networks:
+      - hackthacker
+    environment:
+      - WEBWOLF_HOST=webwolf
+      - WEBWOLF_PORT=9090
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 1G
+    healthcheck:
+      test: ["CMD-SHELL", "nc -z localhost 8080 || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+
+  webwolf:
+    build:
+      context: .
+      dockerfile: docker/webwolf/Dockerfile
+    container_name: attackforge-webwolf
+    restart: unless-stopped
+    networks:
+      - hackthacker
+    depends_on:
+      webgoat:
+        condition: service_healthy
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:hsqldb:hsql://webgoat:9001/webgoat
+      - WEBGOAT_HOST=webgoat
+      - WEBGOAT_PORT=8080
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 512M
+    healthcheck:
+      test: ["CMD-SHELL", "nc -z localhost 9090 || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+
+  # ----------------------------------------------------------------------------
+  # Tomcat Container
+  # ----------------------------------------------------------------------------
+  tomcat:
+    build:
+      context: .
+      dockerfile: docker/tomcat/Dockerfile
+    container_name: attackforge-tomcat
+    restart: unless-stopped
+    networks:
+      - hackthacker
+    environment:
+      - TOMCAT_USER=${TOMCAT_USER:-${DB_USER:-hackthacker}}
+      - TOMCAT_PASS=${TOMCAT_PASS:-${DB_PASS:-hackthacker}}
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 512M
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8080/ || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
+  # ----------------------------------------------------------------------------
+  # Initializer Service (Runs migrations and exits)
+  # ----------------------------------------------------------------------------
+  initializer:
+    build:
+      context: .
+      dockerfile: docker/initializer/Dockerfile
+    container_name: attackforge-initializer
+    networks:
+      - hackthacker
+    volumes:
+      - ./docker/initializer/init.sh:/usr/local/bin/init.sh:ro
+    depends_on:
+      mutillidae:
+        condition: service_healthy
+      dvwa:
+        condition: service_healthy
+      bwapp:
+        condition: service_healthy
+      xvwa:
+        condition: service_healthy
+      vwa:
+        condition: service_healthy
+    init: true

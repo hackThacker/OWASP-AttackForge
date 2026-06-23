@@ -1,0 +1,48 @@
+# ==============================================================================
+# OWASP ATTACKFORGE - DEVELOPMENT & DEBUGGING OVERRIDES
+# ==============================================================================
+
+
+services:
+  # Expose database port directly to host for debugging query runs
+  db:
+    ports:
+      - "3306:3306"
+
+  # Expose PHP containers directly to host for isolation verification
+  mutillidae:
+    ports:
+      - "8081:8080"
+
+  dvwa:
+    ports:
+      - "8082:8080"
+
+  bwapp:
+    ports:
+      - "8083:8080"
+
+  xvwa:
+    ports:
+      - "8084:8080"
+
+  vwa:
+    ports:
+      - "8085:8080"
+
+  # Expose Node.js/Java applications directly
+  juiceshop:
+    ports:
+      - "3000:3000"
+
+  webgoat:
+    ports:
+      - "8080:8080"
+
+  webwolf:
+    ports:
+      - "9090:9090"
+
+  tomcat:
+    ports:
+      - "8086:8080"

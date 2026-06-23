@@ -1,0 +1,26 @@
+# Git
+.git
+.gitignore
+
+# Environment and Secrets
+.env
+*.env
+*.log
+
+# Scripts and installers
+*.sh
+check-owasp-lab.sh
+install-owasp-lab.sh
+uninstall-owasp-lab.sh
+owasp-apps.conf
+
+# Local volumes and host builds
+docker/db/data
+docker/nginx/ssl/*.crt
+docker/nginx/ssl/*.key
+
+# Docker compose files
+docker-compose*.yml
+docker-compose*.yaml
+README.md
+LICENSE

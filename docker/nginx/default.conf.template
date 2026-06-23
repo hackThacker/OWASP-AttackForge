@@ -1,0 +1,166 @@
+# ==============================================================================
+# Nginx Router VHost Configuration Template
+# (Environment variables like ${DOMAIN} will be substituted at container boot)
+# ==============================================================================
+
+# Global HTTP redirect to HTTPS
+server {
+    listen 8080;
+    server_name mutillidae.${DOMAIN} dvwa.${DOMAIN} bwapp.${DOMAIN} xvwa.${DOMAIN} vwa.${DOMAIN} juiceshop.${DOMAIN} webgoat.${DOMAIN} webwolf.${DOMAIN} tomcat.${DOMAIN};
+    
+    # Redirect all HTTP requests to HTTPS (running on mapped port 443 on the host)
+    return 301 https://$host$request_uri;
+}
+
+# 1. Mutillidae II
+server {
+    listen 8443 ssl;
+    server_name mutillidae.${DOMAIN};
+
+    ssl_certificate /etc/nginx/ssl/owasp.crt;
+    ssl_certificate_key /etc/nginx/ssl/owasp.key;
+
+    location / {
+        proxy_pass http://mutillidae:8080;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+}
+
+# 2. DVWA
+server {
+    listen 8443 ssl;
+    server_name dvwa.${DOMAIN};
+
+    ssl_certificate /etc/nginx/ssl/owasp.crt;
+    ssl_certificate_key /etc/nginx/ssl/owasp.key;
+
+    location / {
+        proxy_pass http://dvwa:8080;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+}
+
+# 3. bWAPP
+server {
+    listen 8443 ssl;
+    server_name bwapp.${DOMAIN};
+
+    ssl_certificate /etc/nginx/ssl/owasp.crt;
+    ssl_certificate_key /etc/nginx/ssl/owasp.key;
+
+    location / {
+        proxy_pass http://bwapp:8080;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+}
+
+# 4. XVWA
+server {
+    listen 8443 ssl;
+    server_name xvwa.${DOMAIN};
+
+    ssl_certificate /etc/nginx/ssl/owasp.crt;
+    ssl_certificate_key /etc/nginx/ssl/owasp.key;
+
+    location / {
+        proxy_pass http://xvwa:8080;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+}
+
+# 5. VWA
+server {
+    listen 8443 ssl;
+    server_name vwa.${DOMAIN};
+
+    ssl_certificate /etc/nginx/ssl/owasp.crt;
+    ssl_certificate_key /etc/nginx/ssl/owasp.key;
+
+    location / {
+        proxy_pass http://vwa:8080;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+}
+
+# 6. Juice Shop
+server {
+    listen 8443 ssl;
+    server_name juiceshop.${DOMAIN};
+
+    ssl_certificate /etc/nginx/ssl/owasp.crt;
+    ssl_certificate_key /etc/nginx/ssl/owasp.key;
+
+    location / {
+        proxy_pass http://juiceshop:3000;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+}
+
+# 7. WebGoat
+server {
+    listen 8443 ssl;
+    server_name webgoat.${DOMAIN};
+
+    ssl_certificate /etc/nginx/ssl/owasp.crt;
+    ssl_certificate_key /etc/nginx/ssl/owasp.key;
+
+    location / {
+        proxy_pass http://webgoat:8080;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+}
+
+# 8. WebWolf
+server {
+    listen 8443 ssl;
+    server_name webwolf.${DOMAIN};
+
+    ssl_certificate /etc/nginx/ssl/owasp.crt;
+    ssl_certificate_key /etc/nginx/ssl/owasp.key;
+
+    location / {
+        proxy_pass http://webwolf:9090;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+}
+
+# 9. Apache Tomcat
+server {
+    listen 8443 ssl;
+    server_name tomcat.${DOMAIN};
+
+    ssl_certificate /etc/nginx/ssl/owasp.crt;
+    ssl_certificate_key /etc/nginx/ssl/owasp.key;
+
+    location / {
+        proxy_pass http://tomcat:8080;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+}
