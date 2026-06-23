@@ -1,6 +1,6 @@
 #!/bin/sh
 # ==============================================================================
-# OWASP Lab Toolkit - Database & App Initializer
+# HackThacker Labs - Database & App Initializer
 # Wait for containers to be up and runs database setup scripts programmatically
 # ==============================================================================
 

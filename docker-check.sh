@@ -59,17 +59,17 @@ check_container() {
 }
 
 echo -e "${CYN}--- Container Services status ----------------------------------------${RST}"
-check_container "attackforge-nginx"       "Nginx Proxy Router"
-check_container "attackforge-db"          "MariaDB Database"
-check_container "attackforge-mutillidae"  "Mutillidae II (PHP)"
-check_container "attackforge-dvwa"        "DVWA (PHP)"
-check_container "attackforge-bwapp"       "bWAPP (PHP)"
-check_container "attackforge-xvwa"        "XVWA (PHP)"
-check_container "attackforge-vwa"         "VWA (PHP)"
-check_container "attackforge-juiceshop"   "Juice Shop (Node)"
-check_container "attackforge-webgoat"     "WebGoat (Java)"
-check_container "attackforge-webwolf"     "WebWolf (Java)"
-check_container "attackforge-tomcat"      "Apache Tomcat (Java)"
+check_container "hackthacker-labs-nginx"       "Nginx Proxy Router"
+check_container "hackthacker-labs-db"          "MariaDB Database"
+check_container "hackthacker-labs-mutillidae"  "Mutillidae II (PHP)"
+check_container "hackthacker-labs-dvwa"        "DVWA (PHP)"
+check_container "hackthacker-labs-bwapp"       "bWAPP (PHP)"
+check_container "hackthacker-labs-xvwa"        "XVWA (PHP)"
+check_container "hackthacker-labs-vwa"         "VWA (PHP)"
+check_container "hackthacker-labs-juiceshop"   "Juice Shop (Node)"
+check_container "hackthacker-labs-webgoat"     "WebGoat (Java)"
+check_container "hackthacker-labs-webwolf"     "WebWolf (Java)"
+check_container "hackthacker-labs-tomcat"      "Apache Tomcat (Java)"
 echo ""
 
 # Helper to verify HTTP status code via Nginx proxy (binding to 127.0.0.1:443 locally)

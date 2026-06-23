@@ -2,6 +2,7 @@
 # OWASP ATTACKFORGE - DEVELOPMENT & DEBUGGING OVERRIDES
 # ==============================================================================
 
+name: hackthacker-labs
 
 services:
   # Expose database port directly to host for debugging query runs

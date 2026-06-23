@@ -178,7 +178,7 @@ Anyone who wants 9 vulnerable apps running locally without the DevOps pain
 
 ## 🔧 Troubleshooting
 
-* **Containers stuck restarting:** check `docker logs attackforge-nginx` and confirm no other service (IIS, Apache, Skype) already holds ports 80 or 443.
+* **Containers stuck restarting:** check `docker logs hackthacker-labs-nginx` and confirm no other service (IIS, Apache, Skype) already holds ports 80 or 443.
 * **Domains will not resolve:** run `ping juiceshop.hackthacker.lab`, it should resolve to `127.0.0.1`. If not, recheck your hosts file entries.
 * **WebGoat or WebWolf crash silently:** they need up to 1.5 GB combined. On Windows, raise the WSL2 memory cap in `%USERPROFILE%\.wslconfig` with a `memory=4GB` entry under `[wsl2]`.
 

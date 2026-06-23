@@ -1,3 +1,5 @@
+name: hackthacker-labs
+
 networks:
   hackthacker:
     driver: bridge
@@ -5,7 +7,7 @@ networks:
 
 volumes:
   mariadb-data:
-    name: attackforge-mariadb-data
+    name: hackthacker-labs-mariadb-data
 
 services:
   # ----------------------------------------------------------------------------
@@ -13,7 +15,7 @@ services:
   # ----------------------------------------------------------------------------
   db:
     image: mariadb:11.4
-    container_name: attackforge-db
+    container_name: hackthacker-labs-db
     restart: unless-stopped
     networks:
       - hackthacker
@@ -37,7 +39,7 @@ services:
         max-size: "10m"
         max-file: "3"
     healthcheck:
-      test: ["CMD", "mariadb-admin", "ping", "-u$${DB_USER:-hackthacker}", "-p$${DB_PASS:-hackthacker}"]
+      test: ["CMD-SHELL", "mariadb-admin ping -u\"$$MARIADB_USER\" -p\"$$MARIADB_PASSWORD\""]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -49,7 +51,8 @@ services:
     build:
       context: .
       dockerfile: docker/nginx/Dockerfile
-    container_name: attackforge-nginx
+    image: hackthacker-labs-nginx
+    container_name: hackthacker-labs-nginx
     restart: unless-stopped
     ports:
       - "80:8080"
@@ -104,7 +107,8 @@ services:
       args:
         APP_SOURCE_URL: "https://github.com/webpwnized/mutillidae.git"
         APP_NAME: "mutillidae"
-    container_name: attackforge-mutillidae
+    image: hackthacker-labs-mutillidae
+    container_name: hackthacker-labs-mutillidae
     restart: unless-stopped
     networks:
       - hackthacker
@@ -135,7 +139,8 @@ services:
       args:
         APP_SOURCE_URL: "https://github.com/digininja/DVWA.git"
         APP_NAME: "dvwa"
-    container_name: attackforge-dvwa
+    image: hackthacker-labs-dvwa
+    container_name: hackthacker-labs-dvwa
     restart: unless-stopped
     networks:
       - hackthacker
@@ -165,7 +170,8 @@ services:
       args:
         APP_SOURCE_URL: "https://github.com/iMoon07/bWAPPs.git"
         APP_NAME: "bwapp"
-    container_name: attackforge-bwapp
+    image: hackthacker-labs-bwapp
+    container_name: hackthacker-labs-bwapp
     restart: unless-stopped
     networks:
       - hackthacker
@@ -196,7 +202,8 @@ services:
       args:
         APP_SOURCE_URL: "https://github.com/s4n7h0/xvwa.git"
         APP_NAME: "xvwa"
-    container_name: attackforge-xvwa
+    image: hackthacker-labs-xvwa
+    container_name: hackthacker-labs-xvwa
     restart: unless-stopped
     networks:
       - hackthacker
@@ -226,7 +233,8 @@ services:
       args:
         APP_SOURCE_URL: "https://github.com/hummingbirdscyber/Vulnerable-Web-Application.git"
         APP_NAME: "vwa"
-    container_name: attackforge-vwa
+    image: hackthacker-labs-vwa
+    container_name: hackthacker-labs-vwa
     restart: unless-stopped
     networks:
       - hackthacker
@@ -256,7 +264,8 @@ services:
     build:
       context: .
       dockerfile: docker/juiceshop/Dockerfile
-    container_name: attackforge-juiceshop
+    image: hackthacker-labs-juiceshop
+    container_name: hackthacker-labs-juiceshop
     restart: unless-stopped
     networks:
       - hackthacker
@@ -275,12 +284,13 @@ services:
     build:
       context: .
       dockerfile: docker/webgoat/Dockerfile
-    container_name: attackforge-webgoat
+    image: hackthacker-labs-webgoat
+    container_name: hackthacker-labs-webgoat
     restart: unless-stopped
     networks:
       - hackthacker
     environment:
-      - WEBWOLF_HOST=attackforge-webwolf
+      - WEBWOLF_HOST=hackthacker-labs-webwolf
       - WEBWOLF_PORT=9090
       - JAVA_TOOL_OPTIONS=-XX:+UseSerialGC -XX:TieredStopAtLevel=1 -Xmx512m
     deploy:
@@ -299,7 +309,8 @@ services:
     build:
       context: .
       dockerfile: docker/webwolf/Dockerfile
-    container_name: attackforge-webwolf
+    image: hackthacker-labs-webwolf
+    container_name: hackthacker-labs-webwolf
     restart: unless-stopped
     networks:
       - hackthacker
@@ -307,8 +318,8 @@ services:
       webgoat:
         condition: service_healthy
     environment:
-      - SPRING_DATASOURCE_URL=jdbc:hsqldb:hsql://attackforge-webgoat:9001/webgoat
-      - WEBGOAT_HOST=attackforge-webgoat
+      - SPRING_DATASOURCE_URL=jdbc:hsqldb:hsql://hackthacker-labs-webgoat:9001/webgoat
+      - WEBGOAT_HOST=hackthacker-labs-webgoat
       - WEBGOAT_PORT=8080
       - JAVA_TOOL_OPTIONS=-XX:+UseSerialGC -XX:TieredStopAtLevel=1 -Xmx256m
     deploy:
@@ -330,7 +341,8 @@ services:
     build:
       context: .
       dockerfile: docker/tomcat/Dockerfile
-    container_name: attackforge-tomcat
+    image: hackthacker-labs-tomcat
+    container_name: hackthacker-labs-tomcat
     restart: unless-stopped
     networks:
       - hackthacker
@@ -357,7 +369,8 @@ services:
     build:
       context: .
       dockerfile: docker/initializer/Dockerfile
-    container_name: attackforge-initializer
+    image: hackthacker-labs-initializer
+    container_name: hackthacker-labs-initializer
     networks:
       - hackthacker
     volumes:

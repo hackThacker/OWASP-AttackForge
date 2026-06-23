@@ -6,7 +6,7 @@ RUN apk add --no-cache curl tar
 
 WORKDIR /app
 
-# Download the specific release matching the toolkit installer
+# Download the specific release matching the installer
 RUN curl -L https://github.com/juice-shop/juice-shop/releases/download/v17.1.1/juice-shop-17.1.1_node20_linux_x64.tgz -o juiceshop.tgz \
     && tar -xzf juiceshop.tgz --strip-components=1 \
     && rm juiceshop.tgz
