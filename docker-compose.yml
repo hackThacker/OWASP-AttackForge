@@ -29,8 +29,8 @@ services:
     deploy:
       resources:
         limits:
-          cpus: '1.0'
-          memory: 1G
+          cpus: '0.5'
+          memory: 512M
     logging:
       driver: "json-file"
       options:
@@ -81,8 +81,8 @@ services:
     deploy:
       resources:
         limits:
-          cpus: '0.5'
-          memory: 256M
+          cpus: '0.25'
+          memory: 128M
     logging:
       driver: "json-file"
       options:
@@ -120,8 +120,8 @@ services:
     deploy:
       resources:
         limits:
-          cpus: '0.5'
-          memory: 256M
+          cpus: '0.25'
+          memory: 128M
     healthcheck:
       test: ["CMD-SHELL", "curl -f http://localhost:8080/index.php || exit 1"]
       interval: 10s
@@ -150,8 +150,8 @@ services:
     deploy:
       resources:
         limits:
-          cpus: '0.5'
-          memory: 256M
+          cpus: '0.25'
+          memory: 128M
     healthcheck:
       test: ["CMD-SHELL", "curl -f http://localhost:8080/setup.php || exit 1"]
       interval: 10s
@@ -181,8 +181,8 @@ services:
     deploy:
       resources:
         limits:
-          cpus: '0.5'
-          memory: 256M
+          cpus: '0.25'
+          memory: 128M
     healthcheck:
       test: ["CMD-SHELL", "curl -f http://localhost:8080/install.php || exit 1"]
       interval: 10s
@@ -211,8 +211,8 @@ services:
     deploy:
       resources:
         limits:
-          cpus: '0.5'
-          memory: 256M
+          cpus: '0.25'
+          memory: 128M
     healthcheck:
       test: ["CMD-SHELL", "curl -f http://localhost:8080/index.php || exit 1"]
       interval: 10s
@@ -241,8 +241,8 @@ services:
     deploy:
       resources:
         limits:
-          cpus: '0.5'
-          memory: 256M
+          cpus: '0.25'
+          memory: 128M
     healthcheck:
       test: ["CMD-SHELL", "curl -f http://localhost:8080/index.php || exit 1"]
       interval: 10s
@@ -263,8 +263,8 @@ services:
     deploy:
       resources:
         limits:
-          cpus: '0.5'
-          memory: 512M
+          cpus: '0.25'
+          memory: 256M
 
   # ----------------------------------------------------------------------------
   # Java Application Tier (WebGoat & WebWolf)
@@ -283,8 +283,8 @@ services:
     deploy:
       resources:
         limits:
-          cpus: '1.0'
-          memory: 1G
+          cpus: '0.75'
+          memory: 768M
     healthcheck:
       test: ["CMD-SHELL", "nc -z localhost 8080 || exit 1"]
       interval: 15s
@@ -309,8 +309,8 @@ services:
     deploy:
       resources:
         limits:
-          cpus: '0.5'
-          memory: 512M
+          cpus: '0.25'
+          memory: 256M
     healthcheck:
       test: ["CMD-SHELL", "nc -z localhost 9090 || exit 1"]
       interval: 15s
@@ -334,8 +334,8 @@ services:
     deploy:
       resources:
         limits:
-          cpus: '1.0'
-          memory: 512M
+          cpus: '0.5'
+          memory: 384M
     healthcheck:
       test: ["CMD-SHELL", "curl -f http://localhost:8080/ || exit 1"]
       interval: 10s
