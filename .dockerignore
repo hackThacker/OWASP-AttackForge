@@ -8,11 +8,6 @@
 *.log
 
 # Scripts and installers
-*.sh
-check-owasp-lab.sh
-install-owasp-lab.sh
-uninstall-owasp-lab.sh
-owasp-apps.conf
 
 # Local volumes and host builds
 docker/db/data
