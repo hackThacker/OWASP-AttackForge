@@ -49,8 +49,8 @@ services:
   # ----------------------------------------------------------------------------
   nginx:
     build:
-      context: .
-      dockerfile: docker/nginx/Dockerfile
+      context: ./docker/nginx
+      dockerfile: Dockerfile
     image: hackthacker-labs-nginx
     container_name: hackthacker-labs-nginx
     restart: unless-stopped
@@ -81,6 +81,10 @@ services:
         condition: service_healthy
       webwolf:
         condition: service_healthy
+      wrongsecrets:
+        condition: service_healthy
+      securityshepherd:
+        condition: service_healthy
     deploy:
       resources:
         limits:
@@ -102,8 +106,8 @@ services:
   # ----------------------------------------------------------------------------
   mutillidae:
     build:
-      context: .
-      dockerfile: docker/php/Dockerfile.php
+      context: ./docker/php
+      dockerfile: Dockerfile.php
       args:
         APP_SOURCE_URL: "https://github.com/webpwnized/mutillidae.git"
         APP_NAME: "mutillidae"
@@ -134,8 +138,8 @@ services:
 
   dvwa:
     build:
-      context: .
-      dockerfile: docker/php/Dockerfile.php
+      context: ./docker/php
+      dockerfile: Dockerfile.php
       args:
         APP_SOURCE_URL: "https://github.com/digininja/DVWA.git"
         APP_NAME: "dvwa"
@@ -165,8 +169,8 @@ services:
 
   bwapp:
     build:
-      context: .
-      dockerfile: docker/php/Dockerfile.php
+      context: ./docker/php
+      dockerfile: Dockerfile.php
       args:
         APP_SOURCE_URL: "https://github.com/iMoon07/bWAPPs.git"
         APP_NAME: "bwapp"
@@ -197,8 +201,8 @@ services:
 
   xvwa:
     build:
-      context: .
-      dockerfile: docker/php/Dockerfile.php
+      context: ./docker/php
+      dockerfile: Dockerfile.php
       args:
         APP_SOURCE_URL: "https://github.com/s4n7h0/xvwa.git"
         APP_NAME: "xvwa"
@@ -228,8 +232,8 @@ services:
 
   vwa:
     build:
-      context: .
-      dockerfile: docker/php/Dockerfile.php
+      context: ./docker/php
+      dockerfile: Dockerfile.php
       args:
         APP_SOURCE_URL: "https://github.com/hummingbirdscyber/Vulnerable-Web-Application.git"
         APP_NAME: "vwa"
@@ -262,8 +266,8 @@ services:
   # ----------------------------------------------------------------------------
   juiceshop:
     build:
-      context: .
-      dockerfile: docker/juiceshop/Dockerfile
+      context: ./docker/juiceshop
+      dockerfile: Dockerfile
     image: hackthacker-labs-juiceshop
     container_name: hackthacker-labs-juiceshop
     restart: unless-stopped
@@ -282,8 +286,8 @@ services:
   # ----------------------------------------------------------------------------
   webgoat:
     build:
-      context: .
-      dockerfile: docker/webgoat/Dockerfile
+      context: ./docker/webgoat
+      dockerfile: Dockerfile
     image: hackthacker-labs-webgoat
     container_name: hackthacker-labs-webgoat
     restart: unless-stopped
@@ -307,8 +311,8 @@ services:
 
   webwolf:
     build:
-      context: .
-      dockerfile: docker/webwolf/Dockerfile
+      context: ./docker/webwolf
+      dockerfile: Dockerfile
     image: hackthacker-labs-webwolf
     container_name: hackthacker-labs-webwolf
     restart: unless-stopped
@@ -339,8 +343,8 @@ services:
   # ----------------------------------------------------------------------------
   tomcat:
     build:
-      context: .
-      dockerfile: docker/tomcat/Dockerfile
+      context: ./docker/tomcat
+      dockerfile: Dockerfile
     image: hackthacker-labs-tomcat
     container_name: hackthacker-labs-tomcat
     restart: unless-stopped
@@ -367,8 +371,8 @@ services:
   # ----------------------------------------------------------------------------
   initializer:
     build:
-      context: .
-      dockerfile: docker/initializer/Dockerfile
+      context: ./docker/initializer
+      dockerfile: Dockerfile
     image: hackthacker-labs-initializer
     container_name: hackthacker-labs-initializer
     networks:
@@ -387,3 +391,122 @@ services:
       vwa:
         condition: service_healthy
     init: true
+
+  # ----------------------------------------------------------------------------
+  # OWASP WrongSecrets Application Tier
+  # ----------------------------------------------------------------------------
+  wrongsecrets:
+    build:
+      context: ./docker/wrongsecrets
+      dockerfile: Dockerfile
+    image: hackthacker-labs-wrongsecrets
+    container_name: hackthacker-labs-wrongsecrets
+    restart: unless-stopped
+    ports:
+      - "8090:8090"
+    networks:
+      - hackthacker
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 384M
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+    healthcheck:
+      test: ["CMD-SHELL", "wget --spider -q http://localhost:8080/ || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
+  # ----------------------------------------------------------------------------
+  # OWASP Security Shepherd Services Tier
+  # ----------------------------------------------------------------------------
+  securityshepherd-db:
+    build:
+      context: ./docker/securityshepherd
+      dockerfile: Dockerfile.db
+    image: hackthacker-labs-securityshepherd-db
+    container_name: hackthacker-labs-securityshepherd-db
+    restart: unless-stopped
+    networks:
+      - hackthacker
+    environment:
+      - MARIADB_ROOT_PASSWORD=hackthacker
+      - MARIADB_DATABASE=core
+    deploy:
+      resources:
+        limits:
+          cpus: '0.25'
+          memory: 384M
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+    healthcheck:
+      test: ["CMD-SHELL", "mariadb-admin ping -uroot -phackthacker"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  securityshepherd-mongo:
+    build:
+      context: ./docker/securityshepherd
+      dockerfile: Dockerfile.mongo
+    image: hackthacker-labs-securityshepherd-mongo
+    container_name: hackthacker-labs-securityshepherd-mongo
+    restart: unless-stopped
+    networks:
+      - hackthacker
+    deploy:
+      resources:
+        limits:
+          cpus: '0.25'
+          memory: 256M
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+    healthcheck:
+      test: ["CMD-SHELL", "mongo --eval 'db.runCommand({connectionStatus: 1})' || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
+  securityshepherd:
+    build:
+      context: ./docker/securityshepherd
+      dockerfile: Dockerfile.web
+    image: hackthacker-labs-securityshepherd
+    container_name: hackthacker-labs-securityshepherd
+    restart: unless-stopped
+    networks:
+      - hackthacker
+    depends_on:
+      securityshepherd-db:
+        condition: service_healthy
+      securityshepherd-mongo:
+        condition: service_healthy
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 512M
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8080/ || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 90s
+
+

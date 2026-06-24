@@ -58,14 +58,14 @@ RUN sed -i 's/Listen 80/Listen 8080/' /etc/apache2/ports.conf \
     && chown -R www-data:www-data /var/www /var/run/apache2 /var/lock/apache2 /var/log/apache2 /etc/apache2 /var/lib/apache2
 
 # Copy vulnerable PHP configuration rules
-COPY docker/php/owasp-lab.ini /usr/local/etc/php/conf.d/owasp-lab.ini
-COPY docker/php/disable_strict_mysqli.php /usr/local/etc/php/disable_strict_mysqli.php
+COPY owasp-lab.ini /usr/local/etc/php/conf.d/owasp-lab.ini
+COPY disable_strict_mysqli.php /usr/local/etc/php/disable_strict_mysqli.php
 
 # Copy files from builder stage
 COPY --from=builder --chown=www-data:www-data /src /var/www/html
 
 # Copy and configure the startup entrypoint script
-COPY docker/php/entrypoint.sh /usr/local/bin/entrypoint.sh
+COPY entrypoint.sh /usr/local/bin/entrypoint.sh
 RUN chmod +x /usr/local/bin/entrypoint.sh
 
 # Run as non-root

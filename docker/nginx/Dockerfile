@@ -8,8 +8,8 @@ RUN mkdir -p /etc/nginx/ssl /etc/nginx/templates /var/cache/nginx /var/run /run 
     && chown -R nginx:nginx /etc/nginx /var/cache/nginx /var/run /run /var/log/nginx
 
 # Copy configuration template and entrypoint
-COPY docker/nginx/default.conf.template /etc/nginx/templates/default.conf.template
-COPY docker/nginx/entrypoint.sh /usr/local/bin/entrypoint.sh
+COPY default.conf.template /etc/nginx/templates/default.conf.template
+COPY entrypoint.sh /usr/local/bin/entrypoint.sh
 
 RUN chmod +x /usr/local/bin/entrypoint.sh
 

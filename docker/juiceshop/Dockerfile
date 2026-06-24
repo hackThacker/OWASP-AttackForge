@@ -4,10 +4,16 @@
 FROM alpine:3.19 AS downloader
 RUN apk add --no-cache curl tar
 
+ARG TARGETARCH
 WORKDIR /app
 
-# Download the specific release matching the installer
-RUN curl -L https://github.com/juice-shop/juice-shop/releases/download/v17.1.1/juice-shop-17.1.1_node20_linux_x64.tgz -o juiceshop.tgz \
+# Download the specific release matching the target architecture
+RUN if [ "$TARGETARCH" = "arm64" ]; then \
+        ARCH="arm64"; \
+    else \
+        ARCH="x64"; \
+    fi && \
+    curl -L "https://github.com/juice-shop/juice-shop/releases/download/v17.1.1/juice-shop-17.1.1_node20_linux_${ARCH}.tgz" -o juiceshop.tgz \
     && tar -xzf juiceshop.tgz --strip-components=1 \
     && rm juiceshop.tgz
 

@@ -1,0 +1,96 @@
+name: Release
+
+on:
+  push:
+    branches:
+      - main
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false # Do not cancel in-progress releases to avoid half-completed tag pushes
+
+jobs:
+  ci:
+    name: Run Continuous Integration Checks
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Validate Compose File Syntax
+        run: |
+          docker compose config -q
+
+      - name: Validate Dev Compose File Syntax
+        run: |
+          docker compose -f docker-compose.yml -f docker-compose.dev.yml config -q
+
+      - name: Check Shell Scripts Syntax
+        run: |
+          find . -name "*.sh" -exec bash -n {} +
+
+  release:
+    name: Calculate Version & Tag Release
+    needs: ci
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    outputs:
+      released: ${{ steps.check_tag.outputs.exists == 'false' }}
+      version: v${{ steps.semver.outputs.version }}
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # Required to fetch tags and history for SemVer calculation
+
+      - name: Calculate Next Version
+        id: semver
+        uses: paulhatch/semantic-version@v5.4.0
+        with:
+          tag_prefix: "v"
+          major_pattern: "BREAKING CHANGE:"
+          minor_pattern: "feat:"
+          patch_pattern: "fix:"
+          version_format: "${major}.${minor}.${patch}"
+          initial_version: "1.0.0"
+
+      - name: Check If Tag Exists
+        id: check_tag
+        run: |
+          git fetch --tags
+          TAG_NAME="v${{ steps.semver.outputs.version }}"
+          if git rev-parse "$TAG_NAME" >/dev/null 2>&1; then
+            echo "Tag $TAG_NAME already exists. Skipping release."
+            echo "exists=true" >> $GITHUB_OUTPUT
+          else
+            echo "Tag $TAG_NAME does not exist. Proceeding with release."
+            echo "exists=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Create Git Tag
+        if: steps.check_tag.outputs.exists == 'false'
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git tag "v${{ steps.semver.outputs.version }}"
+          git push origin "v${{ steps.semver.outputs.version }}"
+
+      - name: Create GitHub Release
+        if: steps.check_tag.outputs.exists == 'false'
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: "v${{ steps.semver.outputs.version }}"
+          name: "Release v${{ steps.semver.outputs.version }}"
+          generate_release_notes: true
+          draft: false
+          prerelease: false
+
+  publish-images:
+    name: Publish Images
+    needs: release
+    if: needs.release.outputs.released == 'true'
+    uses: ./.github/workflows/docker-publish.yml
+    with:
+      version: ${{ needs.release.outputs.version }}
+    secrets: inherit

@@ -26,7 +26,7 @@
 
 ## 🔍 What is This
 
-**OWASP AttackForge** is a self contained cyber range that boots nine industry standard vulnerable web applications behind a single Nginx reverse proxy. One `docker compose up` spins up DVWA, Mutillidae II, bWAPP, XVWA, VWA, Juice Shop, WebGoat, WebWolf, and a Tomcat manager console, each in its own hardened, non root container, with database provisioning handled automatically.
+**OWASP AttackForge** is a self contained cyber range that boots eleven industry standard vulnerable web applications behind a single Nginx reverse proxy. One `docker compose up` spins up DVWA, Mutillidae II, bWAPP, XVWA, VWA, Juice Shop, WebGoat, WebWolf, a Tomcat manager console, OWASP WrongSecrets, and OWASP Security Shepherd, each in its own hardened, non root container, with database provisioning handled automatically.
 
 ```text
 Browser
@@ -34,11 +34,13 @@ Browser
    ▼
 ┌─────────────────────────────┐
 │         Nginx Proxy         │
-└──┬───┬───┬───┬───┬───┬───┬──┘
-   │   │   │   │   │   │   │
- DVWA bWAPP XVWA VWA Mutillidae JuiceShop WebGoat/WebWolf  Tomcat
-   │   │   │   │   │
-   └───┴───┴───┴───┴──► MariaDB (private, port 3306)
+└─┬───┬───┬───┬───┬───┬───┬──┬┘
+  │   │   │   │   │   │   │  │
+DVWA bWAPP XVWA VWA Mutillidae JuiceShop WebGoat/WebWolf Tomcat WrongSecrets SecShepherd
+  │   │   │   │   │                                                          │
+  └───┴───┴───┴───┴──► MariaDB (private, port 3306)                      │
+                                                                         ▼
+                                                                  MongoDB (NoSQL)
 ```
 
 > [!CAUTION]
@@ -102,6 +104,8 @@ docker ps
 127.0.0.1 webgoat.hackthacker.lab
 127.0.0.1 webwolf.hackthacker.lab
 127.0.0.1 tomcat.hackthacker.lab
+127.0.0.1 wrongsecrets.hackthacker.lab
+127.0.0.1 securityshepherd.hackthacker.lab
 ```
 
 ---
@@ -119,6 +123,8 @@ docker ps
 | WebGoat | `https://webgoat.hackthacker.lab/WebGoat/login` | create in UI | create in UI |
 | WebWolf | `https://webwolf.hackthacker.lab/login` | WebGoat account | WebGoat account |
 | Tomcat Manager | `https://tomcat.hackthacker.lab` | `hackthacker` | `hackthacker` |
+| OWASP WrongSecrets | `https://wrongsecrets.hackthacker.lab` | (No Credentials) | (No Credentials) |
+| OWASP Security Shepherd | `https://securityshepherd.hackthacker.lab` | `admin` | `password` |
 
 ---
 
@@ -149,8 +155,14 @@ OWASP-AttackForge/
 │   │   └── tomcat-users.xml
 │   ├── webgoat/
 │   │   └── Dockerfile
-│   └── webwolf/
-│       └── Dockerfile
+│   ├── webwolf/
+│   │   └── Dockerfile
+│   ├── wrongsecrets/
+│   │   └── Dockerfile
+│   └── securityshepherd/
+│       ├── Dockerfile.db
+│       ├── Dockerfile.mongo
+│       └── Dockerfile.web
 ├── .dockerignore
 ├── .env.example
 ├── docker-check.sh

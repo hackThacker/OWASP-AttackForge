@@ -70,6 +70,10 @@ check_container "hackthacker-labs-juiceshop"   "Juice Shop (Node)"
 check_container "hackthacker-labs-webgoat"     "WebGoat (Java)"
 check_container "hackthacker-labs-webwolf"     "WebWolf (Java)"
 check_container "hackthacker-labs-tomcat"      "Apache Tomcat (Java)"
+check_container "hackthacker-labs-wrongsecrets" "OWASP WrongSecrets"
+check_container "hackthacker-labs-securityshepherd-db" "SecShepherd DB"
+check_container "hackthacker-labs-securityshepherd-mongo" "SecShepherd NoSQL"
+check_container "hackthacker-labs-securityshepherd" "OWASP SecShepherd"
 echo ""
 
 # Helper to verify HTTP status code via Nginx proxy (binding to 127.0.0.1:443 locally)
@@ -106,6 +110,8 @@ check_endpoint "juiceshop"  "Juice Shop"     "/"                 "(Register in U
 check_endpoint "webgoat"    "WebGoat"        "/WebGoat/login"    "(Create in UI)"
 check_endpoint "webwolf"    "WebWolf"        "/login"            "(Same as WebGoat)"
 check_endpoint "tomcat"     "Tomcat Console" "/"                 "${DB_USER:-hackthacker} / ${DB_PASS:-hackthacker}"
+check_endpoint "wrongsecrets" "WrongSecrets"   "/"                 "(Challenges/No Creds)"
+check_endpoint "securityshepherd" "SecurityShep"  "/"                 "admin / password"
 echo ""
 
 echo -e "${CYN}--- Hosts entry mapping check ---------------------------------------${RST}"
