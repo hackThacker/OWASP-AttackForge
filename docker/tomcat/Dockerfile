@@ -1,4 +1,4 @@
-FROM tomcat:10.1-jre21-temurin-jammy
+FROM tomcat:11.0-jre21-temurin-jammy
 
 # Install curl for health checking
 RUN apt-get update && apt-get install -y --no-install-recommends curl && rm -rf /var/lib/apt/lists/*
