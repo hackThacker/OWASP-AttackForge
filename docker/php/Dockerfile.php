@@ -1,7 +1,7 @@
 # ==============================================================================
 # STAGE 1: Build / Source Downloader
 # ==============================================================================
-FROM alpine:3.19 AS builder
+FROM alpine:3.24 AS builder
 RUN apk add --no-cache git
 
 ARG APP_SOURCE_URL
