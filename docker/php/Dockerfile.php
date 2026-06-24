@@ -28,7 +28,7 @@ RUN if [ "${APP_NAME}" = "dvwa" ]; then \
 # ==============================================================================
 # STAGE 2: Runtime Environment
 # ==============================================================================
-FROM php:8.3-apache-bookworm
+FROM php:8.5-apache-bookworm
 
 # Prevent apt warnings
 ENV DEBIAN_FRONTEND=noninteractive
