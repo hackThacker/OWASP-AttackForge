@@ -10,7 +10,7 @@ RUN wget -q https://github.com/WebGoat/WebGoat/releases/download/v8.2.2/webgoat-
 # ==============================================================================
 # STAGE 2: Runtime
 # ==============================================================================
-FROM eclipse-temurin:21-jre-alpine
+FROM eclipse-temurin:25-jre-alpine
 
 # Set up secure non-root running context
 RUN addgroup -S webgoat && adduser -S webgoat -G webgoat
