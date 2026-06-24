@@ -1,0 +1,28 @@
+changelog:
+  exclude:
+    labels:
+      - ignore
+  categories:
+    - title: "🚀 Features"
+      labels:
+        - feature
+        - feat
+    - title: "🐛 Fixes"
+      labels:
+        - bug
+        - fix
+    - title: "🔒 Security"
+      labels:
+        - security
+    - title: "🏗️ Infrastructure & CI/CD"
+      labels:
+        - ci
+        - build
+        - infrastructure
+    - title: "⚠️ Breaking Changes"
+      labels:
+        - breaking-change
+    - title: "📦 Dependencies"
+      labels:
+        - dependencies
+        - deps

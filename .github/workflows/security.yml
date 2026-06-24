@@ -1,0 +1,112 @@
+name: DevSecOps Security Scanning
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+  schedule:
+    - cron: '0 0 * * 0' # Weekly run on Sundays
+
+jobs:
+  static-analysis:
+    name: Code & Secret Scanning
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Scan for Hardcoded Secrets & Vulnerabilities (Trivy)
+        uses: aquasecurity/trivy-action@0.28.0
+        with:
+          scan-type: 'fs'
+          scan-ref: '.'
+          format: 'table'
+          exit-code: '1' # Fail on Critical vulnerabilities
+          severity: 'CRITICAL'
+          vuln-type: 'os,library'
+
+      - name: Warn on High Vulnerabilities (Trivy)
+        if: always()
+        uses: aquasecurity/trivy-action@0.28.0
+        with:
+          scan-type: 'fs'
+          scan-ref: '.'
+          format: 'table'
+          exit-code: '0' # Warn only for High vulnerabilities
+          severity: 'HIGH'
+          vuln-type: 'os,library'
+
+  dependency-scan:
+    name: Dependency Scan (Grype)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Scan Dependencies with Grype
+        uses: anchore/scan-action@v3
+        with:
+          path: "."
+          fail-build: true
+          severity-cutoff: "critical"
+          only-fixed: false
+
+  dockerfile-lint:
+    name: Dockerfile Linter (Hadolint)
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        dockerfile:
+          - "docker/nginx/Dockerfile"
+          - "docker/php/Dockerfile.php"
+          - "docker/juiceshop/Dockerfile"
+          - "docker/webgoat/Dockerfile"
+          - "docker/webwolf/Dockerfile"
+          - "docker/tomcat/Dockerfile"
+          - "docker/initializer/Dockerfile"
+          - "docker/wrongsecrets/Dockerfile"
+          - "docker/securityshepherd/Dockerfile.db"
+          - "docker/securityshepherd/Dockerfile.mongo"
+          - "docker/securityshepherd/Dockerfile.web"
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Lint Dockerfile
+        uses: hadolint/hadolint-action@v3.1.0
+        with:
+          dockerfile: ${{ matrix.dockerfile }}
+          failure-threshold: error
+
+  docker-scout-audit:
+    name: Layer & Base Image Audit (Docker Scout)
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        image:
+          - nginx
+          - php:8.3-apache-bookworm
+          - node:20-slim
+          - tomcat:10.1-jre21-temurin-jammy
+          - tomcat:8.5-jdk8-corretto
+          - mariadb:11.4
+          - mongo:4.4
+    steps:
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Set up Docker Scout
+        uses: docker/scout-action@v1
+        with:
+          command: quickview
+          image: ${{ matrix.image }}
+          # Fails build if critical vulnerabilities found in base layers
+          exit-code: true 

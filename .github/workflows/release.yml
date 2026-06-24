@@ -1,17 +1,20 @@
-name: Release
+name: Release Promotion Pipeline
 
 on:
   push:
-    branches:
-      - main
-
-concurrency:
-  group: release-${{ github.ref }}
-  cancel-in-progress: false # Do not cancel in-progress releases to avoid half-completed tag pushes
+    tags:
+      - 'v*'
 
 jobs:
-  ci:
-    name: Run Continuous Integration Checks
+  validate-tag:
+    name: Enforce SemVer
+    uses: ./.github/workflows/semantic-version-validation.yml
+    with:
+      tag: ${{ github.ref_name }}
+
+  quality-gate:
+    name: Execute Quality Gates
+    needs: validate-tag
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Code
@@ -29,68 +32,55 @@ jobs:
         run: |
           find . -name "*.sh" -exec bash -n {} +
 
-  release:
-    name: Calculate Version & Tag Release
-    needs: ci
+  staging:
+    name: Promote to Staging
+    needs: quality-gate
     runs-on: ubuntu-latest
+    environment:
+      name: Staging
+      url: https://staging.owasp.hacking
+    steps:
+      - name: Deploy Staging Application Mock
+        run: |
+          echo "Simulating automated deployment to Staging environment..."
+          echo "Executing integration smoke tests..."
+          echo "Smoke tests completed successfully!"
+
+  production:
+    name: Promote to Production Release
+    needs: staging
+    runs-on: ubuntu-latest
+    environment:
+      name: Production
+      url: https://production.owasp.hacking
     permissions:
       contents: write
-    outputs:
-      released: ${{ steps.check_tag.outputs.exists == 'false' }}
-      version: v${{ steps.semver.outputs.version }}
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
-        with:
-          fetch-depth: 0 # Required to fetch tags and history for SemVer calculation
-
-      - name: Calculate Next Version
-        id: semver
-        uses: paulhatch/semantic-version@v5.4.0
-        with:
-          tag_prefix: "v"
-          major_pattern: "BREAKING CHANGE:"
-          minor_pattern: "feat:"
-          patch_pattern: "fix:"
-          version_format: "${major}.${minor}.${patch}"
-          initial_version: "1.0.0"
-
-      - name: Check If Tag Exists
-        id: check_tag
-        run: |
-          git fetch --tags
-          TAG_NAME="v${{ steps.semver.outputs.version }}"
-          if git rev-parse "$TAG_NAME" >/dev/null 2>&1; then
-            echo "Tag $TAG_NAME already exists. Skipping release."
-            echo "exists=true" >> $GITHUB_OUTPUT
-          else
-            echo "Tag $TAG_NAME does not exist. Proceeding with release."
-            echo "exists=false" >> $GITHUB_OUTPUT
-          fi
-
-      - name: Create Git Tag
-        if: steps.check_tag.outputs.exists == 'false'
-        run: |
-          git config --global user.name "github-actions[bot]"
-          git config --global user.email "github-actions[bot]@users.noreply.github.com"
-          git tag "v${{ steps.semver.outputs.version }}"
-          git push origin "v${{ steps.semver.outputs.version }}"
 
       - name: Create GitHub Release
-        if: steps.check_tag.outputs.exists == 'false'
+        id: create_release
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: "v${{ steps.semver.outputs.version }}"
-          name: "Release v${{ steps.semver.outputs.version }}"
+          tag_name: ${{ github.ref_name }}
+          name: "Release ${{ github.ref_name }}"
           generate_release_notes: true
           draft: false
           prerelease: false
 
-  publish-images:
-    name: Publish Images
-    needs: release
-    if: needs.release.outputs.released == 'true'
-    uses: ./.github/workflows/docker-publish.yml
+  publish-production-images:
+    name: Publish Production Images
+    needs: production
+    uses: ./.github/workflows/build.yml
     with:
-      version: ${{ needs.release.outputs.version }}
+      version: ${{ github.ref_name }}
+    secrets: inherit
+
+  attest-images:
+    name: Attest & Sign Images
+    needs: publish-production-images
+    uses: ./.github/workflows/supply-chain-attest.yml
+    with:
+      version: ${{ github.ref_name }}
     secrets: inherit

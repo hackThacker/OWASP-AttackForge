@@ -1,0 +1,220 @@
+name: Build and Publish
+
+on:
+  workflow_call:
+    inputs:
+      version:
+        required: true
+        type: string
+  workflow_dispatch:
+    inputs:
+      version:
+        required: true
+        type: string
+        default: 'latest'
+
+concurrency:
+  group: build-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build-and-push:
+    name: Build & Publish (${{ matrix.service.name }})
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    strategy:
+      fail-fast: false # Prevent failure of one service from aborting others
+      matrix:
+        service:
+          - name: nginx
+            context: ./docker/nginx
+            dockerfile: Dockerfile
+            image_name: nginx
+          - name: mutillidae
+            context: ./docker/php
+            dockerfile: Dockerfile.php
+            image_name: mutillidae
+            build_args: |
+              APP_SOURCE_URL=https://github.com/webpwnized/mutillidae.git
+              APP_NAME=mutillidae
+          - name: dvwa
+            context: ./docker/php
+            dockerfile: Dockerfile.php
+            image_name: dvwa
+            build_args: |
+              APP_SOURCE_URL=https://github.com/digininja/DVWA.git
+              APP_NAME=dvwa
+          - name: bwapp
+            context: ./docker/php
+            dockerfile: Dockerfile.php
+            image_name: bwapp
+            build_args: |
+              APP_SOURCE_URL=https://github.com/iMoon07/bWAPPs.git
+              APP_NAME=bwapp
+          - name: xvwa
+            context: ./docker/php
+            dockerfile: Dockerfile.php
+            image_name: xvwa
+            build_args: |
+              APP_SOURCE_URL=https://github.com/s4n7h0/xvwa.git
+              APP_NAME=xvwa
+          - name: vwa
+            context: ./docker/php
+            dockerfile: Dockerfile.php
+            image_name: vwa
+            build_args: |
+              APP_SOURCE_URL=https://github.com/hummingbirdscyber/Vulnerable-Web-Application.git
+              APP_NAME=vwa
+          - name: juiceshop
+            context: ./docker/juiceshop
+            dockerfile: Dockerfile
+            image_name: juiceshop
+          - name: webgoat
+            context: ./docker/webgoat
+            dockerfile: Dockerfile
+            image_name: webgoat
+          - name: webwolf
+            context: ./docker/webwolf
+            dockerfile: Dockerfile
+            image_name: webwolf
+          - name: tomcat
+            context: ./docker/tomcat
+            dockerfile: Dockerfile
+            image_name: tomcat
+          - name: initializer
+            context: ./docker/initializer
+            dockerfile: Dockerfile
+            image_name: initializer
+          - name: wrongsecrets
+            context: ./docker/wrongsecrets
+            dockerfile: Dockerfile
+            image_name: wrongsecrets
+          - name: securityshepherd-db
+            context: ./docker/securityshepherd
+            dockerfile: Dockerfile.db
+            image_name: securityshepherd-db
+          - name: securityshepherd-mongo
+            context: ./docker/securityshepherd
+            dockerfile: Dockerfile.mongo
+            image_name: securityshepherd-mongo
+          - name: securityshepherd
+            context: ./docker/securityshepherd
+            dockerfile: Dockerfile.web
+            image_name: securityshepherd
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Generate Tags
+        id: generate_tags
+        run: |
+          DOCKER_ORG="${{ secrets.DOCKERHUB_USERNAME }}"
+          GHCR_ORG="${{ github.repository_owner }}"
+          SERVICE="${{ matrix.service.image_name }}"
+          SHA="sha-$(git rev-parse --short HEAD)"
+          
+          # Build a clean tags list
+          TAGS=""
+          
+          # Add Git SHA tags for traceability
+          TAGS="${TAGS}docker.io/${DOCKER_ORG}/attackforge-${SERVICE}:${SHA}
+          ghcr.io/${GHCR_ORG}/attackforge-${SERVICE}:${SHA}
+          "
+          
+          # Check for SemVer matching
+          TAG="${{ inputs.version || github.ref_name }}"
+          if [[ "$TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            VERSION="${TAG#v}"
+            IFS='.' read -r major minor patch <<< "$VERSION"
+            
+            TAGS="${TAGS}docker.io/${DOCKER_ORG}/attackforge-${SERVICE}:latest
+            docker.io/${DOCKER_ORG}/attackforge-${SERVICE}:${major}
+            docker.io/${DOCKER_ORG}/attackforge-${SERVICE}:${major}.${minor}
+            docker.io/${DOCKER_ORG}/attackforge-${SERVICE}:${major}.${minor}.${patch}
+            ghcr.io/${GHCR_ORG}/attackforge-${SERVICE}:latest
+            ghcr.io/${GHCR_ORG}/attackforge-${SERVICE}:${major}
+            ghcr.io/${GHCR_ORG}/attackforge-${SERVICE}:${major}.${minor}
+            ghcr.io/${GHCR_ORG}/attackforge-${SERVICE}:${major}.${minor}.${patch}
+            "
+          else
+            # Fail-safe tag fallback for branch build
+            CLEAN_REF=$(echo "$TAG" | sed 's/[^a-zA-Z0-9.-]/_/g')
+            TAGS="${TAGS}docker.io/${DOCKER_ORG}/attackforge-${SERVICE}:latest
+            docker.io/${DOCKER_ORG}/attackforge-${SERVICE}:${CLEAN_REF}
+            ghcr.io/${GHCR_ORG}/attackforge-${SERVICE}:latest
+            ghcr.io/${GHCR_ORG}/attackforge-${SERVICE}:${CLEAN_REF}
+            "
+          fi
+          
+          # Output back as environment/variables
+          echo "tags<<EOF" >> $GITHUB_OUTPUT
+          echo "$TAGS" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+        with:
+          platforms: all
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build & Publish Image (With Retry Strategy)
+        uses: nick-fields/retry@v3
+        with:
+          timeout_minutes: 20
+          max_attempts: 3
+          retry_on: error
+          command: |
+            TAGS_LIST="${{ steps.generate_tags.outputs.tags }}"
+            TAG_ARGS=""
+            for t in $TAGS_LIST; do
+              if [ -n "$t" ]; then
+                TAG_ARGS="$TAG_ARGS -t $t"
+              fi
+            done
+            
+            BUILD_ARGS=""
+            if [ -n "${{ matrix.service.build_args }}" ]; then
+              while IFS= read -r line; do
+                if [ -n "$line" ]; then
+                  BUILD_ARGS="$BUILD_ARGS --build-arg $line"
+                fi
+              done <<< "${{ matrix.service.build_args }}"
+            fi
+            
+            docker buildx build \
+              --platform linux/amd64,linux/arm64 \
+              --cache-from type=gha \
+              --cache-to type=gha,mode=max \
+              $TAG_ARGS \
+              $BUILD_ARGS \
+              -f ${{ matrix.service.context }}/${{ matrix.service.dockerfile }} \
+              --push \
+              ${{ matrix.service.context }}
+
+      - name: Generate Build Summary
+        run: |
+          echo "### Build Completed: ${{ matrix.service.name }}" >> $GITHUB_STEP_SUMMARY
+          echo "* **Context**: \`${{ matrix.service.context }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "* **Dockerfile**: \`${{ matrix.service.dockerfile }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "* **Architectures**: \`linux/amd64, linux/arm64\`" >> $GITHUB_STEP_SUMMARY
+          echo "* **Pushed Registries**:" >> $GITHUB_STEP_SUMMARY
+          echo "  - Docker Hub (\`docker.io/${{ secrets.DOCKERHUB_USERNAME }}/attackforge-${{ matrix.service.image_name }}\`)" >> $GITHUB_STEP_SUMMARY
+          echo "  - GitHub Container Registry (\`ghcr.io/${{ github.repository_owner }}/attackforge-${{ matrix.service.image_name }}\`)" >> $GITHUB_STEP_SUMMARY
