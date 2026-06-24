@@ -1,4 +1,4 @@
-FROM alpine:3.19
+FROM alpine:3.24
 
 # Install curl and bash for the setup triggers
 RUN apk add --no-cache curl bash
