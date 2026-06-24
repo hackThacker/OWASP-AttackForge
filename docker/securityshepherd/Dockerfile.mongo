@@ -1,0 +1,16 @@
+# ==============================================================================
+# HACKTHACKER LABS - SECURITY SHEPHERD MONGO CONFIGURATION
+# ==============================================================================
+FROM alpine:3.19 AS cloner
+RUN apk add --no-cache git
+WORKDIR /src
+RUN git clone --depth 1 https://github.com/OWASP/SecurityShepherd.git .
+
+FROM mongo:4.4
+COPY --from=cloner /src/src/main/resources/mongodb/moduleSchemas.js /docker-entrypoint-initdb.d/moduleSchemas.js
+USER root
+RUN sed -i 's/\/\/REMOVE/ /g' /docker-entrypoint-initdb.d/moduleSchemas.js
+USER mongodb
+ENTRYPOINT ["docker-entrypoint.sh"]
+EXPOSE 27017
+CMD ["mongod"]

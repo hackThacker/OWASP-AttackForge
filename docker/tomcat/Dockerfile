@@ -11,8 +11,8 @@ RUN if [ -d /usr/local/tomcat/webapps.dist/manager ]; then \
     sed -i '/<Valve/,/\/>/d' /usr/local/tomcat/webapps/host-manager/META-INF/context.xml || true
 
 # Copy custom users definition and entrypoint
-COPY docker/tomcat/tomcat-users.xml /usr/local/tomcat/conf/tomcat-users.xml
-COPY docker/tomcat/entrypoint.sh /usr/local/bin/entrypoint.sh
+COPY tomcat-users.xml /usr/local/tomcat/conf/tomcat-users.xml
+COPY entrypoint.sh /usr/local/bin/entrypoint.sh
 
 # Build secure runtime execution environment
 RUN groupadd -r tomcat && useradd -r -g tomcat tomcat && \

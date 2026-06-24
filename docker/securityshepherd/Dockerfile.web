@@ -1,0 +1,20 @@
+# syntax=docker/dockerfile:1
+# ==============================================================================
+# HACKTHACKER LABS - SECURITY SHEPHERD Tomcat APPLICATION CONFIGURATION
+# ==============================================================================
+FROM maven:3.8.6-openjdk-8 AS builder
+WORKDIR /src
+RUN git clone --depth 1 https://github.com/OWASP/SecurityShepherd.git .
+RUN perl -0777 -pe 's/<plugin>\s*<groupId>com.diffplug.spotless<\/groupId>.*?<\/plugin>//gs' pom.xml > pom.xml.tmp && mv pom.xml.tmp pom.xml
+RUN --mount=type=cache,target=/root/.m2 mvn -Pdocker clean install -DskipTests
+
+FROM tomcat:8.5-jdk8-corretto
+# Copy war file
+COPY --from=builder /src/target/owaspSecurityShepherd.war /usr/local/tomcat/webapps/ROOT.war
+
+# Create connection configuration properties
+RUN printf "databaseConnectionURL=jdbc:mariadb://hackthacker-labs-securityshepherd-db:3306/\nDriverType=org.mariadb.jdbc.Driver\ndatabaseSchema=core\ndatabaseUsername=root\ndatabasePassword=hackthacker\ndatabaseOptions=useUnicode=true&character_set_server=utf8mb4\n" > /usr/local/tomcat/conf/database.properties
+RUN printf "connectionHost=hackthacker-labs-securityshepherd-mongo\nconnectionPort=27017\ndatabaseName=shepherdGames\nconnectTimeout=1000\nsocketTimeout=0\nserverSelectionTimeout=30000" > /usr/local/tomcat/conf/mongo.properties
+
+EXPOSE 8080
+CMD ["catalina.sh", "run"]

@@ -3,10 +3,13 @@
 # (Environment variables like ${DOMAIN} will be substituted at container boot)
 # ==============================================================================
 
+# DNS Resolver for dynamic upstream hostname resolution (prevents boot crash if backends are down)
+resolver 127.0.0.11 valid=10s ipv6=off;
+
 # Global HTTP redirect to HTTPS
 server {
     listen 8080;
-    server_name mutillidae.${DOMAIN} dvwa.${DOMAIN} bwapp.${DOMAIN} xvwa.${DOMAIN} vwa.${DOMAIN} juiceshop.${DOMAIN} webgoat.${DOMAIN} webwolf.${DOMAIN} tomcat.${DOMAIN};
+    server_name mutillidae.${DOMAIN} dvwa.${DOMAIN} bwapp.${DOMAIN} xvwa.${DOMAIN} vwa.${DOMAIN} juiceshop.${DOMAIN} webgoat.${DOMAIN} webwolf.${DOMAIN} tomcat.${DOMAIN} wrongsecrets.${DOMAIN} securityshepherd.${DOMAIN};
     
     # Redirect all HTTP requests to HTTPS (running on mapped port 443 on the host)
     return 301 https://$host$request_uri;
@@ -21,7 +24,8 @@ server {
     ssl_certificate_key /etc/nginx/ssl/owasp.key;
 
     location / {
-        proxy_pass http://mutillidae:8080;
+        set $upstream_mutillidae mutillidae;
+        proxy_pass http://$upstream_mutillidae:8080;
         proxy_set_header Host $host;
         proxy_set_header X-Real-IP $remote_addr;
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
@@ -38,7 +42,8 @@ server {
     ssl_certificate_key /etc/nginx/ssl/owasp.key;
 
     location / {
-        proxy_pass http://dvwa:8080;
+        set $upstream_dvwa dvwa;
+        proxy_pass http://$upstream_dvwa:8080;
         proxy_set_header Host $host;
         proxy_set_header X-Real-IP $remote_addr;
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
@@ -55,7 +60,8 @@ server {
     ssl_certificate_key /etc/nginx/ssl/owasp.key;
 
     location / {
-        proxy_pass http://bwapp:8080;
+        set $upstream_bwapp bwapp;
+        proxy_pass http://$upstream_bwapp:8080;
         proxy_set_header Host $host;
         proxy_set_header X-Real-IP $remote_addr;
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
@@ -72,7 +78,8 @@ server {
     ssl_certificate_key /etc/nginx/ssl/owasp.key;
 
     location / {
-        proxy_pass http://xvwa:8080;
+        set $upstream_xvwa xvwa;
+        proxy_pass http://$upstream_xvwa:8080;
         proxy_set_header Host $host;
         proxy_set_header X-Real-IP $remote_addr;
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
@@ -89,7 +96,8 @@ server {
     ssl_certificate_key /etc/nginx/ssl/owasp.key;
 
     location / {
-        proxy_pass http://vwa:8080;
+        set $upstream_vwa vwa;
+        proxy_pass http://$upstream_vwa:8080;
         proxy_set_header Host $host;
         proxy_set_header X-Real-IP $remote_addr;
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
@@ -106,7 +114,8 @@ server {
     ssl_certificate_key /etc/nginx/ssl/owasp.key;
 
     location / {
-        proxy_pass http://juiceshop:3000;
+        set $upstream_juiceshop juiceshop;
+        proxy_pass http://$upstream_juiceshop:3000;
         proxy_set_header Host $host;
         proxy_set_header X-Real-IP $remote_addr;
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
@@ -123,7 +132,8 @@ server {
     ssl_certificate_key /etc/nginx/ssl/owasp.key;
 
     location / {
-        proxy_pass http://webgoat:8080;
+        set $upstream_webgoat webgoat;
+        proxy_pass http://$upstream_webgoat:8080;
         proxy_set_header Host $host;
         proxy_set_header X-Real-IP $remote_addr;
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
@@ -140,7 +150,8 @@ server {
     ssl_certificate_key /etc/nginx/ssl/owasp.key;
 
     location / {
-        proxy_pass http://webwolf:9090;
+        set $upstream_webwolf webwolf;
+        proxy_pass http://$upstream_webwolf:9090;
         proxy_set_header Host $host;
         proxy_set_header X-Real-IP $remote_addr;
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
@@ -157,10 +168,48 @@ server {
     ssl_certificate_key /etc/nginx/ssl/owasp.key;
 
     location / {
-        proxy_pass http://tomcat:8080;
+        set $upstream_tomcat tomcat;
+        proxy_pass http://$upstream_tomcat:8080;
         proxy_set_header Host $host;
         proxy_set_header X-Real-IP $remote_addr;
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
         proxy_set_header X-Forwarded-Proto $scheme;
+    }
+}
+
+# 10. OWASP WrongSecrets
+server {
+    listen 8443 ssl;
+    server_name wrongsecrets.${DOMAIN};
+
+    ssl_certificate /etc/nginx/ssl/owasp.crt;
+    ssl_certificate_key /etc/nginx/ssl/owasp.key;
+
+    location / {
+        set $upstream_wrongsecrets wrongsecrets;
+        proxy_pass http://$upstream_wrongsecrets:8080;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+}
+
+# 11. OWASP Security Shepherd
+server {
+    listen 8443 ssl;
+    server_name securityshepherd.${DOMAIN};
+
+    ssl_certificate /etc/nginx/ssl/owasp.crt;
+    ssl_certificate_key /etc/nginx/ssl/owasp.key;
+
+    location / {
+        set $upstream_securityshepherd securityshepherd;
+        proxy_pass http://$upstream_securityshepherd:8080;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_redirect http:// https://;
     }
 }
