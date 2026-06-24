@@ -1,7 +1,7 @@
 # ==============================================================================
 # STAGE 1: Download Jar
 # ==============================================================================
-FROM alpine:3.19 AS downloader
+FROM alpine:3.24 AS downloader
 RUN apk add --no-cache wget
 
 WORKDIR /app
