@@ -106,6 +106,7 @@ jobs:
 
       - name: Set up Docker Scout
         uses: docker/scout-action@v1
+        continue-on-error: true
         with:
           command: quickview
           image: ${{ matrix.image }}
