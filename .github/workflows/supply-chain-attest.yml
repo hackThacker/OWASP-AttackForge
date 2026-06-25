@@ -59,7 +59,9 @@ jobs:
         id: parse_version
         run: |
           VERSION="${{ inputs.version || github.event.release.tag_name || 'latest' }}"
+          CLEAN_VERSION="${VERSION#v}"
           echo "version=${VERSION}" >> $GITHUB_OUTPUT
+          echo "clean_version=${CLEAN_VERSION}" >> $GITHUB_OUTPUT
 
       - name: Set Image Name
         id: set_image
@@ -69,9 +71,12 @@ jobs:
             echo "fullname=ghcr.io/${GHCR_ORG}/attackforge:${{ steps.parse_version.outputs.version }}" >> $GITHUB_OUTPUT
             echo "subject=ghcr.io/${GHCR_ORG}/attackforge" >> $GITHUB_OUTPUT
           else
-            echo "fullname=ghcr.io/${GHCR_ORG}/attackforge-${{ matrix.service }}:${{ steps.parse_version.outputs.version }}" >> $GITHUB_OUTPUT
+            echo "fullname=ghcr.io/${GHCR_ORG}/attackforge-${{ matrix.service }}:${{ steps.parse_version.outputs.clean_version }}" >> $GITHUB_OUTPUT
             echo "subject=ghcr.io/${GHCR_ORG}/attackforge-${{ matrix.service }}" >> $GITHUB_OUTPUT
           fi
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
 
       - name: Log in to GHCR
         uses: docker/login-action@v3
@@ -79,6 +84,12 @@ jobs:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Get Image Digest
+        id: get_digest
+        run: |
+          DIGEST=$(docker buildx imagetools inspect "${{ steps.set_image.outputs.fullname }}" | grep -m1 "Digest:" | awk '{print $2}')
+          echo "digest=${DIGEST}" >> $GITHUB_OUTPUT
 
       - name: Install Cosign
         uses: sigstore/cosign-installer@v3.5.0
@@ -98,6 +109,6 @@ jobs:
         uses: actions/attest@v1
         with:
           subject-name: ${{ steps.set_image.outputs.subject }}
-          subject-digest: ${{ steps.parse_version.outputs.version }} # Or tag reference
+          subject-digest: ${{ steps.get_digest.outputs.digest }}
           predicate-type: 'https://cyclonedx.org/bom'
           predicate-path: 'sbom-${{ matrix.service }}.json'
