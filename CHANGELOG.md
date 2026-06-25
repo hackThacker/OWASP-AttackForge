@@ -16,6 +16,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - *(attest)* Align service tags and retrieve image digests for SLSA attestation ([708484c](https://github.com/hackThacker/OWASP-AttackForge/commit/708484c3361e10649e51bcfd014f26044468b66b))
 
+- *(release)* Resolve heredoc indentation error in verify-release job ([d22a7ee](https://github.com/hackThacker/OWASP-AttackForge/commit/d22a7eedd6c916144d31d68c7bd6f73f77855a96))
+
 
 ### Miscellaneous Chores
 
@@ -24,6 +26,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - *(changelog)* Update CHANGELOG.md for v1.2.0 [skip ci] ([b8c1429](https://github.com/hackThacker/OWASP-AttackForge/commit/b8c1429531a708648dcb5a5c8ee171d8795a63b1))
 
 - *(changelog)* Update CHANGELOG.md for v1.2.0 [skip ci] ([c7dbe53](https://github.com/hackThacker/OWASP-AttackForge/commit/c7dbe5372711bce774123ee6ba7d912270700697))
+
+- *(changelog)* Update CHANGELOG.md for v1.2.0 [skip ci] ([cd24a0f](https://github.com/hackThacker/OWASP-AttackForge/commit/cd24a0f923989cbe94c072fe8d05a9a006052fea))
 
 
 ## [1.1.0] - 2026-06-25
