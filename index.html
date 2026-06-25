@@ -1751,20 +1751,7 @@
                     </div>
                 </div>
 
-                <!-- IP Override Button -->
-                <div class="ip-override-section mt-3">
-                    <div class="d-flex gap-2 align-items-center flex-wrap">
-                        <button class="btn btn-outline-light btn-sm" onclick="promptForIPOverride()"
-                            title="Override IP address for tool access">
-                            <i class="fas fa-globe me-1"></i>
-                            <span id="current-ip-display" style="color: white;">IP: Auto</span>
-                        </button>
-                    </div>
-                    <small class="text-danger d-block mt-1">
-                        <i class="fas fa-info-circle me-1"></i>
-                        <strong>Edit if public IP used, then refresh!</strong>
-                    </small>
-                </div>
+
             </div>
 
             <!-- Mini Status Dashboard - Under Branding -->
@@ -2179,7 +2166,8 @@
                 const hrefUrl = `https://${tool.subdomain}.${currentIP}${portSuffix}${tool.uri}`;
 
                 const toolCard = document.createElement('div');
-                toolCard.className = `tool-card status-running`;
+                const isRunning = !tool.stopped;
+                toolCard.className = `tool-card ${isRunning ? 'status-running' : 'status-stopped'}`;
                 toolCard.style.borderLeftColor = categoryColor;
 
                 toolCard.innerHTML = `
@@ -2194,27 +2182,40 @@
                             <div class="form-check">
                                 <input type="checkbox" class="form-check-input tool-checkbox" 
                                        onchange="handleToolSelection(this, '${tool.name}')"
-                                       data-tool-name="${tool.name}">
+                                       data-tool-name="${tool.name}"
+                                       ${selectedTools.has(tool.name) ? 'checked' : ''}>
                             </div>
                         </div>
                         <div class="tool-description">${tool.description}</div>
                         <div class="tool-status">
-                            <span class="status-indicator status-running"></span>
-                            <span class="small">Running</span>
-                            <span class="performance-indicator">🟢 Optimal</span>
+                            <span class="status-indicator ${isRunning ? 'status-running' : 'status-stopped'}"></span>
+                            <span class="small">${isRunning ? 'Up ' + (tool.uptime || '3 hours') : 'Stopped'}</span>
+                            <span class="performance-indicator" style="${isRunning ? '' : 'color: var(--danger-color); background: rgba(255, 68, 68, 0.1); border-color: rgba(255, 68, 68, 0.3);'}">
+                                ${isRunning ? '🟢 Optimal' : '🔴 Offline'}
+                            </span>
                         </div>
                     </div>
-                    <div class="tool-actions">
-                        <div class="button-row">
-                            <a href="${hrefUrl}" target="_blank" 
-                               class="btn btn-outline-primary btn-sm w-100">
-                                <i class="fas fa-external-link-alt me-1"></i>Open Lab
+                    <div class="tool-actions mt-3">
+                        <div class="button-row mb-2">
+                            <a href="${hrefUrl}" target="_blank" class="btn btn-outline-primary btn-sm flex-grow-1">
+                                <i class="fas fa-external-link-alt me-1"></i>Open
                             </a>
                             <button class="btn btn-outline-info btn-sm" onclick="showCredentials('${tool.name}')">
                                 <i class="fas fa-key me-1"></i>Credentials
                             </button>
                             <button class="btn btn-outline-warning btn-sm" onclick="showToolInfo('${tool.name}')">
                                 <i class="fas fa-info-circle me-1"></i>Info
+                            </button>
+                        </div>
+                        <div class="button-row">
+                            <button class="btn btn-success btn-sm flex-grow-1" onclick="controlTool('${tool.name}', 'start')">
+                                <i class="fas fa-play me-1"></i>Start
+                            </button>
+                            <button class="btn btn-warning btn-sm flex-grow-1" onclick="controlTool('${tool.name}', 'restart')">
+                                <i class="fas fa-redo me-1"></i>Restart
+                            </button>
+                            <button class="btn btn-danger btn-sm flex-grow-1" onclick="controlTool('${tool.name}', 'stop')">
+                                <i class="fas fa-stop me-1"></i>Stop
                             </button>
                         </div>
                     </div>
@@ -2320,39 +2321,114 @@
             document.getElementById('toolInfoModal').style.display = 'none';
         }
 
-        // Dashboard Metrics & Mini Dashboard
         function updateMiniDashboard() {
-            document.getElementById('miniContainers').textContent = `\${allTools.length} / \${allTools.length}`;
-            document.getElementById('miniHealth').textContent = "100%";
+            const runningCount = allTools.filter(t => !t.stopped).length;
+            document.getElementById('miniContainers').textContent = `${runningCount} / ${allTools.length}`;
             
-            // Randomize slightly to feel alive
-            const cpu = Math.floor(Math.random() * 5) + 10;
-            const mem = (Math.random() * 0.4 + 4.2).toFixed(1);
-            document.getElementById('miniCpu').textContent = `\${cpu}%`;
-            document.getElementById('miniMemory').textContent = `\${mem} GB`;
+            const healthPercentage = allTools.length > 0 ? Math.round((runningCount / allTools.length) * 100) : 0;
+            document.getElementById('miniHealth').textContent = `${healthPercentage}%`;
+            
+            // CPU/Memory simulation based on running containers
+            const cpu = runningCount > 0 ? Math.floor(Math.random() * 6) + (runningCount * 4) : 0.5;
+            const mem = runningCount > 0 ? (3.2 + (runningCount * 0.35) + Math.random() * 0.2).toFixed(1) : "0.2";
+            document.getElementById('miniCpu').textContent = runningCount > 0 ? `${cpu}%` : "0.5%";
+            document.getElementById('miniMemory').textContent = runningCount > 0 ? `${mem} GB` : "0.2 GB";
+        }
+
+        // Live Tool Control Handlers (Stateful simulation matching the project design)
+        function controlTool(toolName, action) {
+            const tool = allTools.find(t => t.name === toolName);
+            if (!tool) return;
+
+            showNotification(`${action.charAt(0).toUpperCase() + action.slice(1)}ing ${toolName} container...`, 'info');
+
+            setTimeout(() => {
+                if (action === 'stop') {
+                    tool.stopped = true;
+                    showNotification(`${toolName} stopped successfully!`, 'success');
+                } else if (action === 'start') {
+                    tool.stopped = false;
+                    showNotification(`${toolName} is now running!`, 'success');
+                } else if (action === 'restart') {
+                    tool.stopped = false;
+                    showNotification(`${toolName} container restarted successfully!`, 'success');
+                }
+                renderTools(allTools);
+                updateMiniDashboard();
+            }, 1000);
         }
 
         // Smart Suggestions
         const suggestions = [
-            "Start with OWASP Juice Shop to learn about modern XSS and SQLi vulnerabilities.",
-            "Use crAPI to understand microservice authentication and broken object-level authorization (BOLA).",
-            "Mutillidae and DVWA are perfect targets for practicing traditional PHP web application bugs.",
-            "Try WrongSecrets to learn why hardcoded credentials are a critical security issue.",
-            "BrokenCrystals integrates with LLMs and Vector databases to teach modern AI vulnerabilities."
+            {
+                text: "Configure crAPI to learn about Broken Object Level Authorization (BOLA).",
+                category: "API SECURITY",
+                icon: "fas fa-shield-alt"
+            },
+            {
+                text: "Test Juice Shop for DOM-based Cross-Site Scripting (XSS) and SQL Injection.",
+                category: "WEB APPLICATION",
+                icon: "fas fa-bug"
+            },
+            {
+                text: "Exploit Tomcat Manager Console with brute-force to achieve Remote Code Execution.",
+                category: "INFRASTRUCTURE",
+                icon: "fas fa-server"
+            },
+            {
+                text: "Investigate BrokenCrystals AI and Vector DB vulnerabilities using Ollama.",
+                category: "AI SECURITY",
+                icon: "fas fa-brain"
+            },
+            {
+                text: "Examine ZeroHealth to understand medical application data leaks.",
+                category: "HEALTHCARE SEC",
+                icon: "fas fa-heartbeat"
+            },
+            {
+                text: "Solve WrongSecrets challenges to find hardcoded credentials.",
+                category: "CLOUD SECURITY",
+                icon: "fas fa-key"
+            },
+            {
+                text: "Use Security Shepherd challenges to practice mobile and web API security.",
+                category: "TRAINING",
+                icon: "fas fa-graduation-cap"
+            },
+            {
+                text: "Analyze RESTaurant Swagger API playground for injection flaws.",
+                category: "API SECURITY",
+                icon: "fas fa-utensils"
+            },
+            {
+                text: "Practice session hijacking and command injection using DVWA.",
+                category: "WEB APPLICATION",
+                icon: "fas fa-unlock-alt"
+            },
+            {
+                text: "Audit the Nginx router logs for suspicious penetration testing traffic.",
+                category: "BEST PRACTICE",
+                icon: "fas fa-eye"
+            }
         ];
 
         function populateSuggestions() {
             const container = document.getElementById('suggestionsContainer');
             if (container) {
                 container.innerHTML = '';
-                const shuffled = suggestions.sort(() => 0.5 - Math.random());
-                const selected = shuffled.slice(0, 3);
+                const shuffled = [...suggestions].sort(() => 0.5 - Math.random());
+                const selected = shuffled.slice(0, 4); // Show 4 suggestions like the image
                 selected.forEach(s => {
-                    const div = document.createElement('div');
-                    div.className = 'suggestion-item';
-                    div.style.cssText = 'background: rgba(255,255,255,0.05); padding: 0.5rem; margin-bottom: 0.5rem; border-radius: 4px; font-size: 0.85rem; color: #cbd5e1; border-left: 3px solid #3b82f6;';
-                    div.textContent = s;
-                    container.appendChild(div);
+                    const item = document.createElement('div');
+                    item.className = 'suggestion-item';
+                    item.innerHTML = `
+                        <i class="${s.icon} suggestion-icon" style="color: #6366f1;"></i>
+                        <div class="suggestion-content">
+                            <div class="suggestion-text">${s.text}</div>
+                            <span class="suggestion-category" style="background: rgba(99, 102, 241, 0.2); color: #818cf8;">${s.category}</span>
+                        </div>
+                    `;
+                    container.appendChild(item);
                 });
             }
         }
@@ -2407,21 +2483,55 @@
         });
 
         // Bulk Actions
+        // Bulk Actions
         document.getElementById('bulkStartBtn').addEventListener('click', () => {
-            showNotification(`Starting \${selectedTools.size} selected labs...`, 'info');
-            setTimeout(() => showNotification('All selected labs started!', 'success'), 1500);
+            showNotification(`Starting ${selectedTools.size} selected labs...`, 'info');
+            setTimeout(() => {
+                selectedTools.forEach(toolName => {
+                    const tool = allTools.find(t => t.name === toolName);
+                    if (tool) tool.stopped = false;
+                });
+                renderTools(allTools);
+                updateMiniDashboard();
+                showNotification('All selected labs started!', 'success');
+            }, 1200);
         });
+
         document.getElementById('bulkRestartBtn').addEventListener('click', () => {
-            showNotification(`Restarting \${selectedTools.size} selected labs...`, 'info');
-            setTimeout(() => showNotification('All selected labs restarted!', 'success'), 1500);
+            showNotification(`Restarting ${selectedTools.size} selected labs...`, 'info');
+            setTimeout(() => {
+                selectedTools.forEach(toolName => {
+                    const tool = allTools.find(t => t.name === toolName);
+                    if (tool) tool.stopped = false;
+                });
+                renderTools(allTools);
+                updateMiniDashboard();
+                showNotification('All selected labs restarted!', 'success');
+            }, 1200);
         });
+
         document.getElementById('bulkStopBtn').addEventListener('click', () => {
-            showNotification(`Stopping \${selectedTools.size} selected labs...`, 'info');
-            setTimeout(() => showNotification('All selected labs stopped!', 'success'), 1500);
+            showNotification(`Stopping ${selectedTools.size} selected labs...`, 'info');
+            setTimeout(() => {
+                selectedTools.forEach(toolName => {
+                    const tool = allTools.find(t => t.name === toolName);
+                    if (tool) tool.stopped = true;
+                });
+                renderTools(allTools);
+                updateMiniDashboard();
+                showNotification('All selected labs stopped!', 'success');
+            }, 1200);
         });
 
         // Initialize on load
         window.addEventListener('load', async () => {
+            // Assign random mock uptimes to staticTools
+            const uptimes = ["3 hours", "12 minutes", "47 minutes", "5 minutes", "2 hours", "About a minute", "29 minutes", "16 minutes"];
+            staticTools.forEach(t => {
+                t.uptime = uptimes[Math.floor(Math.random() * uptimes.length)];
+                t.stopped = false;
+            });
+            
             updateIPDisplay();
             setupFilters();
             renderTools(allTools);
@@ -2431,7 +2541,5 @@
         });
         </script>
 </body>
-
-</html>
 
 </html>
