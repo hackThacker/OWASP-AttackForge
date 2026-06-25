@@ -5,6 +5,19 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.2.0] - 2026-06-25
+
+
+### Bug Fixes
+
+- *(build)* Correct juiceshop, zerohealth-server, and restaurant Dockerfile build issues ([476829c](https://github.com/hackThacker/OWASP-AttackForge/commit/476829cfc63b48e0077c68559f053f227fb13c66))
+
+
+### Miscellaneous Chores
+
+- *(changelog)* Update CHANGELOG.md for v1.1.0 [skip ci] ([6bfbd73](https://github.com/hackThacker/OWASP-AttackForge/commit/6bfbd7378948c1aa027ad74780a8f17157d3b3db))
+
+
 ## [1.1.0] - 2026-06-25
 
 
