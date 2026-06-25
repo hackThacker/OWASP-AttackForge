@@ -6,7 +6,7 @@ RUN apk add --no-cache git
 WORKDIR /src
 RUN git clone --depth 1 https://github.com/OWASP/SecurityShepherd.git .
 
-FROM mariadb:11.4
+FROM mariadb:12.3
 COPY --from=cloner /src/src/main/resources/database/coreSchema.sql /docker-entrypoint-initdb.d/coreSchema.sql
 COPY --from=cloner /src/src/main/resources/database/moduleSchemas.sql /docker-entrypoint-initdb.d/moduleSchemas.sql
 
