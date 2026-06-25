@@ -28,6 +28,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - *(ci)* Define explicit job permissions in release workflow and fix detached HEAD push in changelog workflow ([d825b90](https://github.com/hackThacker/OWASP-AttackForge/commit/d825b90b03653e1bfdf367edbe7d54cf6d7eccf3))
 
+- *(ci)* Support conditional Docker Hub publishing and specify RELEASE_NOTES.md as body_path for github releases ([2e3cbc1](https://github.com/hackThacker/OWASP-AttackForge/commit/2e3cbc16807b6cab1d88edf15b2a173c9e3049f5))
+
 
 ### Documentation
 
@@ -39,6 +41,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Implement Enterprise DevSecOps CI/CD Platform ([1b05697](https://github.com/hackThacker/OWASP-AttackForge/commit/1b056975d488e75c63cd82ae72bef27dbd01807f))
 
 - Integrate seven new vulnerable applications to the cyber range ([b25ed9c](https://github.com/hackThacker/OWASP-AttackForge/commit/b25ed9cc85f3279168722e8b5da9524c3120fa8a))
+
+
+### Miscellaneous Chores
+
+- *(changelog)* Update CHANGELOG.md for v1.1.0 [skip ci] ([29318f7](https://github.com/hackThacker/OWASP-AttackForge/commit/29318f71607c047230515e1d9be041ad63af1ef4))
 
 
 ## [1.0.0] - 2026-06-24
