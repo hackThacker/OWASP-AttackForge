@@ -72,6 +72,9 @@ jobs:
   publish-production-images:
     name: Publish Production Images
     needs: production
+    permissions:
+      contents: read
+      packages: write
     uses: ./.github/workflows/build.yml
     with:
       version: ${{ github.ref_name }}
@@ -80,6 +83,11 @@ jobs:
   attest-images:
     name: Attest & Sign Images
     needs: publish-production-images
+    permissions:
+      id-token: write
+      contents: write
+      packages: write
+      attestations: write
     uses: ./.github/workflows/supply-chain-attest.yml
     with:
       version: ${{ github.ref_name }}
