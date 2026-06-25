@@ -16,7 +16,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Scan for Hardcoded Secrets & Vulnerabilities (Trivy)
         uses: aquasecurity/trivy-action@v0.36.0
@@ -44,7 +44,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Scan Dependencies with Grype
         uses: anchore/scan-action@v3
@@ -81,7 +81,7 @@ jobs:
           - "docker/restaurant/Dockerfile"
     steps:
       - name: Checkout Code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Lint Dockerfile
         uses: hadolint/hadolint-action@v3.1.0
