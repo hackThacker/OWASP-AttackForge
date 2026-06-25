@@ -78,6 +78,7 @@ DVWA bWAPP XVWA VWA Mutillidae JuiceShop WebGoat/WebWolf Tomcat WrongSecrets Sec
 ```bash
 git clone https://github.com/hackThacker/OWASP-AttackForge.git
 cd OWASP-AttackForge
+docker compose -f docker-compose.yml up --build -d 
 sudo ./docker-install.sh
 ```
 
@@ -88,6 +89,7 @@ To run it manually instead:
 ```bash
 cp .env.example .env
 docker compose up --build -d
+docker compose -f docker-compose.yml up --build -d 
 docker ps
 ```
 
@@ -145,6 +147,33 @@ docker ps
 | RESTaurant API | `https://restaurant.hackthacker.lab/docs` | (Swagger API UI) | (Swagger API UI) |
 
 ---
+
+### Official Repository, Technology, Tech Stack, Version, Categories
+
+| App                                                                              | Technology    | Tech Stack                                    | Version             | Categories                                            |
+| -------------------------------------------------------------------------------- | ------------- | --------------------------------------------- | ------------------- | ----------------------------------------------------- |
+| [Mutillidae II](https://github.com/webpwnized/mutillidae)                        | PHP           | PHP 8.3, Apache, MySQL                        | 2.12.6              | Free-form, Guided Lessons, Single-player              |
+| [DVWA](https://github.com/digininja/DVWA)                                        | PHP           | PHP 8.3, Apache, MariaDB/MySQL                | Latest              | Free-form, Guided Lessons, Single-player              |
+|  [bWAPP](https://sourceforge.net/projects/bwapp/files/bWAPP/bWAPPv2.2/)                                      | PHP           | PHP 8.3, Apache, MySQL                        | Latest              | Free-form, Guided Lessons, Single-player              |
+| [XVWA](https://github.com/s4n7h0/xvwa)                                           | PHP           | PHP 8.3, Apache, MySQL                        | Latest              | Free-form, Single-player                              |
+|  [VWA](https://github.com/hummingbirdscyber/Vulnerable-Web-Application)*                               | PHP           | PHP 8.3, Apache, MySQL                        | Deployment Specific | Free-form, Single-player                              |
+| [Adminer](https://github.com/vrana/adminer)                                      | PHP           | PHP 8.3                                       | Latest              | Database Administration Tool                          |
+| [phpMyAdmin](https://github.com/phpmyadmin/phpmyadmin)                           | PHP           | PHP 8.3, MariaDB/MySQL                        | Latest              | Database Administration Tool                          |
+| [Juice Shop](https://github.com/juice-shop/juice-shop)                           | Node.js       | Node.js, Express, Angular, TypeScript         | 20.x                | Free-form, Guided Lessons, Score-based, Single-player |
+| [WebGoat](https://github.com/WebGoat/WebGoat)                                    | Java          | Java 21, Spring Boot                          | 2023.8              | Guided Lessons, Challenge-based, Single-player        |
+| [WebWolf](https://github.com/WebGoat/WebGoat) *(bundled with WebGoat)*           | Java          | Java 21, Spring Boot                          | Bundled             | Attacker Simulation, Companion Tool                   |
+| [Apache Tomcat](https://github.com/apache/tomcat)                                | Java          | Java 21, Apache Tomcat                        | 10.x                | Infrastructure Target, Misconfiguration/RCE Lab       |
+| [OWASP WrongSecrets](https://github.com/OWASP/wrongsecrets)                      | Java          | Java, Spring Boot, Docker, Terraform          | Latest              | Challenge-based, Scored, Single-player                |
+| [OWASP Security Shepherd](https://github.com/OWASP/SecurityShepherd)             | Java          | Java, Apache Tomcat, MySQL                    | 3.1                 | Guided Lessons, CTF/Tournament, Multi-player          |
+| [VulnerableApp](https://github.com/SasanLabs/VulnerableApp)                      | Java          | Java, Spring Boot, Gradle                     | Latest              | Free-form, Scanner Benchmark, Single-player           |
+| [OWASP crAPI](https://github.com/OWASP/crAPI)                                    | Microservices | Java, Go, Python, Node.js, PostgreSQL, Docker | 1.1.6               | Free-form, Challenge-based, API Security              |
+| [crAPI MailHog](https://github.com/mailhog/MailHog)                              | Go            | Go, SMTP Testing                              | Latest              | Supporting Infrastructure, Mail Capture               |
+| [BrokenCrystals](https://github.com/NeuraLegion/brokencrystals)                  | TypeScript    | NestJS, React, PostgreSQL                     | Latest              | Free-form, Benchmark, Single-player                   |
+| [BC Mailcatcher](https://github.com/sj26/mailcatcher)                            | Ruby          | Ruby, SMTP Testing                            | Latest              | Supporting Infrastructure, Mail Capture               |
+| [DVWS Node](https://github.com/snoopysecurity/dvws-node)                         | Node.js       | Node.js, MySQL, MongoDB                       | Latest              | Free-form, API/Web-Service Security                   |
+| [ZeroHealth Web](https://github.com/aligorithm/Zero-Health)                      | Node.js       | Node.js, Express, PostgreSQL, React           | Latest              | Free-form, Challenge-based, AI/LLM Security           |
+| [ZeroHealth API](https://github.com/aligorithm/Zero-Health)                      | Node.js       | Node.js, Express, Swagger/OpenAPI             | Latest              | Free-form, Challenge-based, API Security              |
+| [RESTaurant API](https://github.com/theowni/Damn-Vulnerable-RESTaurant-API-Game) | Python        | FastAPI, PostgreSQL                           | Latest              | CTF/Challenge-based, API Security, Single-player      |
 
 ## 📁 Repo Files
 
