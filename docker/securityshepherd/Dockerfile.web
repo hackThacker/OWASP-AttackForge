@@ -8,7 +8,7 @@ RUN git clone --depth 1 https://github.com/OWASP/SecurityShepherd.git .
 RUN perl -0777 -pe 's/<plugin>\s*<groupId>com.diffplug.spotless<\/groupId>.*?<\/plugin>//gs' pom.xml > pom.xml.tmp && mv pom.xml.tmp pom.xml
 RUN mvn -Pdocker clean install -DskipTests
 
-FROM tomcat:8.5-jdk8-corretto
+FROM tomcat:10.0-jdk8-corretto
 # Copy war file
 COPY --from=builder /src/target/owaspSecurityShepherd.war /usr/local/tomcat/webapps/ROOT.war
 
