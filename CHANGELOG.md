@@ -12,10 +12,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - *(build)* Correct juiceshop, zerohealth-server, and restaurant Dockerfile build issues ([476829c](https://github.com/hackThacker/OWASP-AttackForge/commit/476829cfc63b48e0077c68559f053f227fb13c66))
 
+- *(build)* Remove BuildKit cache mount and correct sbom-action input ([6ce51e2](https://github.com/hackThacker/OWASP-AttackForge/commit/6ce51e214c89566498f4c67d6202c9e0293802fb))
+
 
 ### Miscellaneous Chores
 
 - *(changelog)* Update CHANGELOG.md for v1.1.0 [skip ci] ([6bfbd73](https://github.com/hackThacker/OWASP-AttackForge/commit/6bfbd7378948c1aa027ad74780a8f17157d3b3db))
+
+- *(changelog)* Update CHANGELOG.md for v1.2.0 [skip ci] ([b8c1429](https://github.com/hackThacker/OWASP-AttackForge/commit/b8c1429531a708648dcb5a5c8ee171d8795a63b1))
 
 
 ## [1.1.0] - 2026-06-25
