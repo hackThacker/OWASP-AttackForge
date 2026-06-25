@@ -87,7 +87,7 @@ jobs:
         uses: anchore/sbom-action@v0.16.0
         with:
           image: ${{ steps.set_image.outputs.fullname }}
-          output-format: cyclonedx-json
+          format: cyclonedx-json
           artifact-name: sbom-${{ matrix.service }}.json
 
       - name: Sign GHCR Image with Cosign
