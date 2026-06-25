@@ -30,6 +30,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - *(ci)* Support conditional Docker Hub publishing and specify RELEASE_NOTES.md as body_path for github releases ([2e3cbc1](https://github.com/hackThacker/OWASP-AttackForge/commit/2e3cbc16807b6cab1d88edf15b2a173c9e3049f5))
 
+- *(ci)* Correct conditional if expression syntax in build workflow ([1fdcbb9](https://github.com/hackThacker/OWASP-AttackForge/commit/1fdcbb964219a44dbf93296d6f6b45419b83819e))
+
 
 ### Documentation
 
@@ -46,6 +48,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Miscellaneous Chores
 
 - *(changelog)* Update CHANGELOG.md for v1.1.0 [skip ci] ([29318f7](https://github.com/hackThacker/OWASP-AttackForge/commit/29318f71607c047230515e1d9be041ad63af1ef4))
+
+- *(changelog)* Update CHANGELOG.md for v1.1.0 [skip ci] ([912a1db](https://github.com/hackThacker/OWASP-AttackForge/commit/912a1db2aa778a45a0dc3f0fd056fe0a3d34afb5))
 
 
 ## [1.0.0] - 2026-06-24
