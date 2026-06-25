@@ -1,7 +1,7 @@
 # ==============================================================================
 # HACKTHACKER LABS - SECURITY SHEPHERD MONGO CONFIGURATION
 # ==============================================================================
-FROM alpine:3.19 AS cloner
+FROM alpine:3.24 AS cloner
 RUN apk add --no-cache git
 WORKDIR /src
 RUN git clone --depth 1 https://github.com/OWASP/SecurityShepherd.git .
