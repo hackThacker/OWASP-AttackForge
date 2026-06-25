@@ -2,7 +2,7 @@
 # ==============================================================================
 # HACKTHACKER LABS - SECURITY SHEPHERD Tomcat APPLICATION CONFIGURATION
 # ==============================================================================
-FROM maven:3.8.6-openjdk-8 AS builder
+FROM maven:3.8-openjdk-18 AS builder
 WORKDIR /src
 RUN git clone --depth 1 https://github.com/OWASP/SecurityShepherd.git .
 RUN perl -0777 -pe 's/<plugin>\s*<groupId>com.diffplug.spotless<\/groupId>.*?<\/plugin>//gs' pom.xml > pom.xml.tmp && mv pom.xml.tmp pom.xml
