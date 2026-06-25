@@ -26,7 +26,7 @@
 
 ## 🔍 What is This
 
-**OWASP AttackForge** is a self contained cyber range that boots eleven industry standard vulnerable web applications behind a single Nginx reverse proxy. One `docker compose up` spins up DVWA, Mutillidae II, bWAPP, XVWA, VWA, Juice Shop, WebGoat, WebWolf, a Tomcat manager console, OWASP WrongSecrets, and OWASP Security Shepherd, each in its own hardened, non root container, with database provisioning handled automatically.
+**OWASP AttackForge** is a self-contained cyber range that boots 18 industry-standard vulnerable web applications and APIs behind a single Nginx reverse proxy. One `docker compose up` spins up DVWA, Mutillidae II, bWAPP, XVWA, VWA, Juice Shop, WebGoat, WebWolf, Tomcat, OWASP WrongSecrets, OWASP Security Shepherd, SasanLabs VulnerableApp, OWASP crAPI, Broken Crystals, DVWS Node, Zero-Health, and RESTaurant, each in its own hardened, non-root container, with database provisioning handled automatically.
 
 ```text
 Browser
@@ -106,6 +106,15 @@ docker ps
 127.0.0.1 tomcat.hackthacker.lab
 127.0.0.1 wrongsecrets.hackthacker.lab
 127.0.0.1 securityshepherd.hackthacker.lab
+127.0.0.1 vulnerableapp.hackthacker.lab
+127.0.0.1 crapi.hackthacker.lab
+127.0.0.1 crapi-mailhog.hackthacker.lab
+127.0.0.1 brokencrystals.hackthacker.lab
+127.0.0.1 brokencrystals-mailcatcher.hackthacker.lab
+127.0.0.1 dvws.hackthacker.lab
+127.0.0.1 zerohealth.hackthacker.lab
+127.0.0.1 zerohealth-api.hackthacker.lab
+127.0.0.1 restaurant.hackthacker.lab
 ```
 
 ---
@@ -125,6 +134,15 @@ docker ps
 | Tomcat Manager | `https://tomcat.hackthacker.lab` | `hackthacker` | `hackthacker` |
 | OWASP WrongSecrets | `https://wrongsecrets.hackthacker.lab` | (No Credentials) | (No Credentials) |
 | OWASP Security Shepherd | `https://securityshepherd.hackthacker.lab` | `admin` | `password` |
+| VulnerableApp | `https://vulnerableapp.hackthacker.lab` | (Unified Gateway) | (Unified Gateway) |
+| OWASP crAPI | `https://crapi.hackthacker.lab` | register in UI | register in UI |
+| crAPI Mailhog | `https://crapi-mailhog.hackthacker.lab` | (Mail Inbox UI) | (Mail Inbox UI) |
+| BrokenCrystals | `https://brokencrystals.hackthacker.lab` | register in UI | register in UI |
+| BC Mailcatcher | `https://brokencrystals-mailcatcher.hackthacker.lab` | (Mail Inbox UI) | (Mail Inbox UI) |
+| DVWS Node | `https://dvws.hackthacker.lab` | (API Challenges) | (API Challenges) |
+| ZeroHealth Web | `https://zerohealth.hackthacker.lab` | (Health Portal UI) | (Health Portal UI) |
+| ZeroHealth API | `https://zerohealth-api.hackthacker.lab/api/health` | (API Health Status) | (API Health Status) |
+| RESTaurant API | `https://restaurant.hackthacker.lab/docs` | (Swagger API UI) | (Swagger API UI) |
 
 ---
 
@@ -159,10 +177,24 @@ OWASP-AttackForge/
 │   │   └── Dockerfile
 │   ├── wrongsecrets/
 │   │   └── Dockerfile
-│   └── securityshepherd/
-│       ├── Dockerfile.db
-│       ├── Dockerfile.mongo
-│       └── Dockerfile.web
+│   ├── securityshepherd/
+│   │   ├── Dockerfile.db
+│   │   ├── Dockerfile.mongo
+│   │   └── Dockerfile.web
+│   ├── brokencrystals-app/
+│   │   └── Dockerfile
+│   ├── brokencrystals-db/
+│   │   └── Dockerfile
+│   ├── brokencrystals-keycloak/
+│   │   └── Dockerfile
+│   ├── dvws-node/
+│   │   └── Dockerfile
+│   ├── zerohealth-client/
+│   │   └── Dockerfile
+│   ├── zerohealth-server/
+│   │   └── Dockerfile
+│   └── restaurant/
+│       └── Dockerfile
 ├── .dockerignore
 ├── .env.example
 ├── docker-check.sh
