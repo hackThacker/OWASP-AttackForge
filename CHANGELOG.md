@@ -38,10 +38,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - *(release)* Use artifact sharing to carry notes draft to verification job ([cb85260](https://github.com/hackThacker/OWASP-AttackForge/commit/cb85260286a600bc38e811eb09782b551dab3bfe))
 
+- *(release)* Enforce lowercase registry namespace owner for tags and attestations ([b5f3bc2](https://github.com/hackThacker/OWASP-AttackForge/commit/b5f3bc27c2ba0efee5231ede72728c4c4d86c608))
+
 
 ### Documentation
 
 - Update README.md to document 18-app stack, local domains, credentials, and folder structures ([114f138](https://github.com/hackThacker/OWASP-AttackForge/commit/114f138e4e3d0382cb33c99228f4cf3518c46293))
+
+- *(labs)* Add comprehensive application metadata ([fc81922](https://github.com/hackThacker/OWASP-AttackForge/commit/fc81922dc9e44dc761b42fa94e9d81253b51e167))
 
 
 ### Features
@@ -66,6 +70,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - *(changelog)* Update CHANGELOG.md for v1.1.0 [skip ci] ([bc8ddc7](https://github.com/hackThacker/OWASP-AttackForge/commit/bc8ddc71482a80c8b1145dfc9666e236c1fd02aa))
 
 - *(changelog)* Update CHANGELOG.md for v1.1.0 [skip ci] ([ca7f095](https://github.com/hackThacker/OWASP-AttackForge/commit/ca7f0959540246c4c0589541033eeeb84ab42dd8))
+
+- *(changelog)* Update CHANGELOG.md for v1.1.0 [skip ci] ([b553f8f](https://github.com/hackThacker/OWASP-AttackForge/commit/b553f8fb42c98511506d58ce2f0b28212c2793f4))
 
 
 ## [1.0.0] - 2026-06-24
