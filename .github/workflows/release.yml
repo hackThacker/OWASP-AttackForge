@@ -84,6 +84,12 @@ jobs:
           draft: true
           prerelease: false
 
+      - name: Upload Release Notes Draft
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-notes-draft
+          path: RELEASE_NOTES_DRAFT.md
+
   publish-production-images:
     name: Publish Production Images
     needs: production
@@ -127,6 +133,11 @@ jobs:
             echo "${{ secrets.DOCKERHUB_TOKEN }}" | docker login -u "${{ secrets.DOCKERHUB_USERNAME }}" --password-stdin
           fi
 
+      - name: Download Release Notes Draft
+        uses: actions/download-artifact@v4
+        with:
+          name: release-notes-draft
+
       - name: Validate Release Registries & Finalize Release Notes
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -155,9 +166,7 @@ jobs:
           fi
           
           echo "Appending registry status and digest checksums to release notes..."
-          gh release view "${TAG}" --json body --jq .body > release_body.md
-          
-          cat <<EOF >> release_body.md
+          cat <<EOF >> RELEASE_NOTES_DRAFT.md
 
           ## Packages
 
@@ -183,4 +192,4 @@ jobs:
           EOF
           
           echo "Finalizing and publishing release..."
-          gh release edit "${TAG}" --notes-file release_body.md --draft=false
+          gh release edit "${TAG}" --title "${{ needs.production.outputs.release_title }}" --notes-file RELEASE_NOTES_DRAFT.md --draft=false
