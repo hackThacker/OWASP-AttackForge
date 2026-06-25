@@ -32,6 +32,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - *(ci)* Correct conditional if expression syntax in build workflow ([1fdcbb9](https://github.com/hackThacker/OWASP-AttackForge/commit/1fdcbb964219a44dbf93296d6f6b45419b83819e))
 
+- *(ci)* Declare top-level permissions on release workflow and remove job-level permissions ([6674ff9](https://github.com/hackThacker/OWASP-AttackForge/commit/6674ff96c2caa52f6b0332ed5761c0e5975c176b))
+
 
 ### Documentation
 
@@ -50,6 +52,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - *(changelog)* Update CHANGELOG.md for v1.1.0 [skip ci] ([29318f7](https://github.com/hackThacker/OWASP-AttackForge/commit/29318f71607c047230515e1d9be041ad63af1ef4))
 
 - *(changelog)* Update CHANGELOG.md for v1.1.0 [skip ci] ([912a1db](https://github.com/hackThacker/OWASP-AttackForge/commit/912a1db2aa778a45a0dc3f0fd056fe0a3d34afb5))
+
+- *(changelog)* Update CHANGELOG.md for v1.1.0 [skip ci] ([b9d6122](https://github.com/hackThacker/OWASP-AttackForge/commit/b9d612250dd7dba72fd63bf305443e76930597d6))
 
 
 ## [1.0.0] - 2026-06-24
