@@ -34,6 +34,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - *(ci)* Declare top-level permissions on release workflow and remove job-level permissions ([6674ff9](https://github.com/hackThacker/OWASP-AttackForge/commit/6674ff96c2caa52f6b0332ed5761c0e5975c176b))
 
+- *(ci)* Use shell-based conditional login check for Docker Hub in build.yml ([d291d24](https://github.com/hackThacker/OWASP-AttackForge/commit/d291d24d5247649343c1e1b54af77a185fb28645))
+
 
 ### Documentation
 
@@ -54,6 +56,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - *(changelog)* Update CHANGELOG.md for v1.1.0 [skip ci] ([912a1db](https://github.com/hackThacker/OWASP-AttackForge/commit/912a1db2aa778a45a0dc3f0fd056fe0a3d34afb5))
 
 - *(changelog)* Update CHANGELOG.md for v1.1.0 [skip ci] ([b9d6122](https://github.com/hackThacker/OWASP-AttackForge/commit/b9d612250dd7dba72fd63bf305443e76930597d6))
+
+- *(changelog)* Update CHANGELOG.md for v1.1.0 [skip ci] ([a0912bd](https://github.com/hackThacker/OWASP-AttackForge/commit/a0912bdb6ea3e453410e64f74c15a66eafe42bf8))
 
 
 ## [1.0.0] - 2026-06-24
