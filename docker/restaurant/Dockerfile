@@ -20,6 +20,8 @@ FROM python:3.10-slim-bookworm
 RUN apt-get update && apt-get -y install --no-install-recommends \
     libpq-dev \
     gcc \
+    libc-dev \
+    curl \
     vim \
     sudo \
     && rm -rf /var/lib/apt/lists/*
@@ -36,8 +38,10 @@ RUN echo 'ALL ALL=(ALL) NOPASSWD: /usr/bin/find' | sudo tee /etc/sudoers.d/find_
 
 # Create a dedicated non-root user
 RUN useradd -m app && chown -R app:app /app
+
+WORKDIR /app/app
 USER app
 
 EXPOSE 8091
 
-CMD ["bash", "-c", "alembic upgrade head && uvicorn app.main:app --host 0.0.0.0 --port 8091 --workers 1"]
+CMD ["bash", "-c", "alembic upgrade head && uvicorn main:app --host 0.0.0.0 --port 8091 --workers 1"]

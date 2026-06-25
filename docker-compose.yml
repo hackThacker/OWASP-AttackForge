@@ -580,7 +580,7 @@ services:
           cpus: '0.25'
           memory: 256M
     healthcheck:
-      test: ["CMD-SHELL", "curl -f http://localhost:80/ || exit 1"]
+      test: ["CMD-SHELL", "wget --spider -q http://127.0.0.1:80/ || exit 1"]
       interval: 15s
       timeout: 5s
       retries: 5
@@ -977,10 +977,11 @@ services:
       KC_BOOTSTRAP_ADMIN_PASSWORD: Pa55w0rd
       KC_HEALTH_ENABLED: "true"
     healthcheck:
-      test: ["CMD-SHELL", "exec 3<>/dev/tcp/localhost/9000;echo -e \"GET /health/ready HTTP/1.1\r\nhost: localhost:9000\r\nConnection: close\r\n\r\n\" >&3;grep \"HTTP/1.1 200 OK\" <&3"]
+      test: ["CMD-SHELL", "exec 3<>/dev/tcp/127.0.0.1/9000;echo -e \"GET /health/ready HTTP/1.1\r\nhost: 127.0.0.1:9000\r\nConnection: close\r\n\r\n\" >&3;grep \"HTTP/1.1 200 OK\" <&3"]
       timeout: 10s
       interval: 15s
       retries: 5
+      start_period: 120s
     depends_on:
       brokencrystals-keycloak-db:
         condition: service_healthy
@@ -999,7 +1000,7 @@ services:
         aliases:
           - mailcatcher
     healthcheck:
-      test: ['CMD', 'wget', '--spider', '-q', 'http://localhost:1080']
+      test: ['CMD', 'wget', '--spider', '-q', 'http://127.0.0.1:1080']
       interval: 10s
       timeout: 5s
       retries: 5
@@ -1067,7 +1068,7 @@ services:
       brokencrystals-ollama:
         condition: service_healthy
     healthcheck:
-      test: ['CMD', 'wget', '--spider', '-q', 'http://localhost:3000/api/config']
+      test: ['CMD', 'wget', '--spider', '-q', 'http://127.0.0.1:3000/api/config']
       interval: 10s
       timeout: 10s
       retries: 5
@@ -1167,7 +1168,7 @@ services:
       dvws-mysql:
         condition: service_healthy
     healthcheck:
-      test: ["CMD-SHELL", "curl -f http://localhost:80/ || exit 1"]
+      test: ["CMD-SHELL", "curl -f http://127.0.0.1:80/ || exit 1"]
       interval: 15s
       timeout: 10s
       retries: 5
@@ -1226,7 +1227,7 @@ services:
       zerohealth-db:
         condition: service_healthy
     healthcheck:
-      test: ["CMD-SHELL", "curl -f http://localhost:5000/api/config || exit 1"]
+      test: ["CMD-SHELL", "curl -f http://127.0.0.1:5000/api/health || exit 1"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -1302,7 +1303,7 @@ services:
       restaurant-db:
         condition: service_healthy
     healthcheck:
-      test: ["CMD-SHELL", "curl -f http://localhost:8091/docs || exit 1"]
+      test: ["CMD-SHELL", "curl -f http://127.0.0.1:8091/docs || exit 1"]
       interval: 15s
       timeout: 5s
       retries: 5

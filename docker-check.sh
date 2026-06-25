@@ -125,7 +125,7 @@ check_endpoint "brokencrystals" "BrokenCrystals" "/"               "(Register in
 check_endpoint "brokencrystals-mailcatcher" "BC Mailcatcher" "/"    "(Mail Inbox UI)"
 check_endpoint "dvws"          "DVWS Node"      "/"                 "(API Challenges)"
 check_endpoint "zerohealth"    "ZeroHealth Web" "/"                 "(Health Portal UI)"
-check_endpoint "zerohealth-api" "ZeroHealth API" "/api/config"      "(API Backend Conf)"
+check_endpoint "zerohealth-api" "ZeroHealth API" "/api/health"      "(API Health Status)"
 check_endpoint "restaurant"    "RESTaurant API" "/docs"             "(Swagger API UI)"
 echo ""
 
