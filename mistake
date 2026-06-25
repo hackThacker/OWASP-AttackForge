@@ -1,0 +1,59 @@
+https://bwapp.hackthacker.lab/login.php
+Error: Table 'bWAPP.users' doesn't exist
+
+https://mutillidae.hackthacker.lab/index.php?do=logout
+
+Notice: session_start(): Ignoring session_start() because a session is already active (started from /var/www/html/src/index.php on line 23) in /var/www/html/src/includes/process-commands.php on line 46
+
+Warning: Cannot modify header information - headers already sent by (output started at /var/www/html/src/includes/process-commands.php:46) in /var/www/html/src/includes/process-commands.php on line 59
+
+Warning: Cannot modify header information - headers already sent by (output started at /var/www/html/src/includes/process-commands.php:46) in /var/www/html/src/includes/process-commands.php on line 60
+
+Warning: Cannot modify header information - headers already sent by (output started at /var/www/html/src/includes/process-commands.php:46) in /var/www/html/src/includes/process-commands.php on line 71
+
+Warning: Cannot modify header information - headers already sent by (output started at /var/www/html/src/includes/process-commands.php:46) in /var/www/html/src/includes/process-commands.php on line 72
+
+Warning: Cannot modify header information - headers already sent by (output started at /var/www/html/src/includes/process-commands.php:46) in /var/www/html/src/includes/process-commands.php on line 74
+
+https://mutillidae.hackthacker.lab/index.php?do=toggle-security&page=/var/www/html/src/home.php
+Warning: Undefined variable $pSecurityLevel in /var/www/html/src/classes/SQLQueryHandler.php on line 109
+
+Warning: Undefined variable $pSecurityLevel in /var/www/html/src/classes/SQLQueryHandler.php on line 109
+
+Warning: Undefined variable $pSecurityLevel in /var/www/html/src/classes/SQLQueryHandler.php on line 113
+
+Warning: Cannot modify header information - headers already sent by (output started at /var/www/html/src/classes/SQLQueryHandler.php:109) in /var/www/html/src/includes/process-commands.php on line 201
+
+2026-06-23 10:02:36 1321 [Warning] Access denied for user '${DB_USER:-hackthacker}'@'localhost' (using password: YES)
+
+2026-06-23 10:02:47 1332 [Warning] Access denied for user '${DB_USER:-hackthacker}'@'localhost' (using password: YES)
+
+2026-06-23 10:02:57 1343 [Warning] Access denied for user '${DB_USER:-hackthacker}'@'localhost' (using password: YES)
+
+2026-06-23 10:03:07 1354 [Warning] Access denied for user '${DB_USER:-hackthacker}'@'localhost' (using password: YES)
+
+2026-06-23 10:03:17 1365 [Warning] Access denied for user '${DB_USER:-hackthacker}'@'localhost' (using password: YES)
+
+2026-06-23 10:03:27 1376 [Warning] Access denied for user '${DB_USER:-hackthacker}'@'localhost' (using password: YES)
+
+2026-06-23 10:03:37 1391 [Warning] Access denied for user '${DB_USER:-hackthacker}'@'localhost' (using password: YES)
+
+2026-06-23 10:03:47 1490 [Warning] Access denied for user '${DB_USER:-hackthacker}'@'localhost' (using password: YES)
+
+2026-06-23 10:03:57 1517 [Warning] Access denied for user '${DB_USER:-hackthacker}'@'localhost' (using password: YES)
+
+2026-06-23 10:04:08 1525 [Warning] Access denied for user '${DB_USER:-hackthacker}'@'localhost' (using password: YES)
+
+2026-06-23 10:04:18 1537 [Warning] Access denied for user '${DB_USER:-hackthacker}'@'localhost' (using password: YES)
+
+2026-06-23 10:04:28 1552 [Warning] Access denied for user '${DB_USER:-hackthacker}'@'localhost' (using password: YES)
+
+2026-06-23 10:04:38 1565 [Warning] Access denied for user '${DB_USER:-hackthacker}'@'localhost' (using password: YES)
+
+2026-06-23 10:04:48 1578 [Warning] Access denied for user '${DB_USER:-hackthacker}'@'localhost' (using password: YES)
+
+2026-06-23 10:04:58 1593 [Warning] Access denied for user '${DB_USER:-hackthacker}'@'localhost' (using password: YES)
+
+2026-06-23 10:05:08 1600 [Warning] Access denied for user '${DB_USER:-hackthacker}'@'localhost' (using password: YES) allowed it understand database is not propely confiugure check that also understand or not ?
+
+working real one you have mistkae on it check it everthigs should be work fine ok ? somethings is broken on it check that also becase many are not running propely also many time ok need to fix that propely ok ?

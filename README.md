@@ -81,7 +81,7 @@ cd OWASP-AttackForge
 sudo ./docker-install.sh
 ```
 
-The installer copies `.env.example` to `.env`, builds and starts all 12 containers, and maps the lab domains into your hosts file on Linux automatically.
+The installer copies `.env.example` to `.env`, builds and starts all 45 containers, and maps the lab domains into your hosts file on Linux automatically.
 
 To run it manually instead:
 
@@ -215,7 +215,7 @@ Students practicing OWASP Top 10 exploitation hands on
 Red team members rehearsing web attack chains before an engagement
 Blue team analysts generating live exploitation traffic for detection testing
 Bug bounty hunters sharpening manual testing skills before live targets
-Anyone who wants 9 vulnerable apps running locally without the DevOps pain
+Anyone who wants 18 vulnerable apps running locally without the DevOps pain
 ```
 
 ---

@@ -20,7 +20,7 @@ graph TD
     
     Promotion -->|Approved| Release[GitHub Release Notes Categories]
     Release -->|Trigger| Build[Enterprise Matrix Parallel Build]
-    Build -->|15 Services Matrix| DualPush[Dual Push: Docker Hub & GHCR]
+    Build -->|22 Services Matrix| DualPush[Dual Push: Docker Hub & GHCR]
     DualPush -->|Trigger| Attestation[Supply Chain Attestation: Cosign OIDC, CycloneDX SBOM, Attestations]
 ```
 

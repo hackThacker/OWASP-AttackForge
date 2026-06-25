@@ -12,11 +12,6 @@ on:
         required: true
         type: string
         default: 'latest'
-
-concurrency:
-  group: build-${{ github.ref }}
-  cancel-in-progress: true
-
 jobs:
   build-and-push:
     name: Build & Publish (${{ matrix.service.name }})

@@ -43,6 +43,13 @@ jobs:
           - securityshepherd-db
           - securityshepherd-mongo
           - securityshepherd
+          - brokencrystals-db
+          - brokencrystals-keycloak
+          - brokencrystals-app
+          - dvws-node
+          - zerohealth-server
+          - zerohealth-client
+          - restaurant-app
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
