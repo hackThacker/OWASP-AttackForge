@@ -84,7 +84,7 @@ jobs:
         uses: sigstore/cosign-installer@v3.5.0
 
       - name: Generate SBOM (CycloneDX)
-        uses: anchore/sbom-action@v0.16.0
+        uses: anchore/sbom-action@v0.24.0
         with:
           image: ${{ steps.set_image.outputs.fullname }}
           format: cyclonedx-json
