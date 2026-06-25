@@ -89,10 +89,18 @@ check_endpoint() {
   local uri="$3"
   local creds="$4"
   
-  local url="https://${app_name}.${LAB_DOMAIN}${uri}"
+  local url
+  local host_hdr
+  if [ -n "$app_name" ]; then
+    url="https://${app_name}.${LAB_DOMAIN}${uri}"
+    host_hdr="${app_name}.${LAB_DOMAIN}"
+  else
+    url="https://${LAB_DOMAIN}${uri}"
+    host_hdr="${LAB_DOMAIN}"
+  fi
   
   # Fetch HTTP status code locally by hitting the loopback Nginx mapping with custom Host header
-  local code=$(curl -s -k -o /dev/null -w "%{http_code}" -H "Host: ${app_name}.${LAB_DOMAIN}" "https://127.0.0.1:443${uri}" --connect-timeout 2 || echo "000")
+  local code=$(curl -s -k -o /dev/null -w "%{http_code}" -H "Host: ${host_hdr}" "https://127.0.0.1:443${uri}" --connect-timeout 2 || echo "000")
   
   local http_stat="${RED}[DOWN]${RST}"
   if [[ "$code" =~ ^(200|301|302|401|403|404)$ ]]; then
@@ -107,6 +115,7 @@ check_endpoint() {
 echo -e "${CYN}--- Application URLs, Credentials & Endpoint Health ------------------${RST}"
 printf "  ${WHT}%-15s${RST} | ${CYN}%-38s${RST} | ${YLW}%-18s${RST} | ${WHT}%s${RST}\n" "APP NAME" "ACCESS URL" "CREDENTIALS" "ENDPOINT STATUS"
 echo -e "  ----------------|----------------------------------------|--------------------|----------------"
+check_endpoint ""           "Landing Portal" "/"                 "(Dashboard UI)"
 check_endpoint "mutillidae" "Mutillidae II"  "/"                 "admin / adminpass"
 check_endpoint "dvwa"       "DVWA"           "/login.php"        "admin / password"
 check_endpoint "bwapp"      "bWAPP"          "/login.php"        "bee / bug"

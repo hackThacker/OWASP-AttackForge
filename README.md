@@ -97,6 +97,7 @@ docker ps
 
 ```text
 # Add to your hosts file if not using docker-install.sh
+127.0.0.1 hackthacker.lab
 127.0.0.1 mutillidae.hackthacker.lab
 127.0.0.1 dvwa.hackthacker.lab
 127.0.0.1 bwapp.hackthacker.lab
@@ -118,6 +119,20 @@ docker ps
 127.0.0.1 zerohealth-api.hackthacker.lab
 127.0.0.1 restaurant.hackthacker.lab
 ```
+
+---
+
+## 🖥️ Interactive Landing Portal
+
+OWASP AttackForge includes a beautiful, pre-configured landing page portal that serves as your central command dashboard. From this dashboard, you can:
+* View the real-time status of all 17 vulnerable services.
+* Read the default credentials for each target application.
+* Launch any lab application or API playground in a single click.
+
+### How to Access the Portal:
+1. **Local Access (No Hosts Entry Required):** Open your browser and navigate to **[https://localhost](https://localhost)**.
+2. **Domain-Based Access:** Once your system hosts file has the mappings registered, open your browser and navigate to **[https://hackthacker.lab](https://hackthacker.lab)**.
+3. **SSL Certificate Warning:** The range uses auto-generated self-signed certificates. When accessing the portal or any of the subdomains, your browser will display a warning. Simply click **Advanced** -> **Proceed to localhost / hackthacker.lab (unsafe)** to continue.
 
 ---
 
