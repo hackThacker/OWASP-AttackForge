@@ -57,8 +57,8 @@ services:
   # ----------------------------------------------------------------------------
   nginx:
     build:
-      context: ./docker/nginx
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: ./docker/nginx/Dockerfile
     image: hackthacker-labs-nginx
     container_name: hackthacker-labs-nginx
     restart: unless-stopped

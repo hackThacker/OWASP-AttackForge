@@ -7,9 +7,10 @@ RUN apk add --no-cache openssl bash curl
 RUN mkdir -p /etc/nginx/ssl /etc/nginx/templates /var/cache/nginx /var/run /run \
     && chown -R nginx:nginx /etc/nginx /var/cache/nginx /var/run /run /var/log/nginx
 
-# Copy configuration template and entrypoint
-COPY default.conf.template /etc/nginx/templates/default.conf.template
-COPY entrypoint.sh /usr/local/bin/entrypoint.sh
+# Copy configuration template, entrypoint and static landing page
+COPY docker/nginx/default.conf.template /etc/nginx/templates/default.conf.template
+COPY docker/nginx/entrypoint.sh /usr/local/bin/entrypoint.sh
+COPY index.html /usr/share/nginx/html/index.html
 
 RUN chmod +x /usr/local/bin/entrypoint.sh
 

@@ -9,10 +9,24 @@ resolver 127.0.0.11 valid=10s ipv6=off;
 # Global HTTP redirect to HTTPS
 server {
     listen 8080;
-    server_name mutillidae.${DOMAIN} dvwa.${DOMAIN} bwapp.${DOMAIN} xvwa.${DOMAIN} vwa.${DOMAIN} juiceshop.${DOMAIN} webgoat.${DOMAIN} webwolf.${DOMAIN} tomcat.${DOMAIN} wrongsecrets.${DOMAIN} securityshepherd.${DOMAIN} vulnerableapp.${DOMAIN} vulnerableapp-facade.${DOMAIN} crapi.${DOMAIN} crapi-mailhog.${DOMAIN} brokencrystals.${DOMAIN} brokencrystals-mailcatcher.${DOMAIN} dvws.${DOMAIN} zerohealth.${DOMAIN} zerohealth-api.${DOMAIN} restaurant.${DOMAIN};
+    server_name ${DOMAIN} localhost mutillidae.${DOMAIN} dvwa.${DOMAIN} bwapp.${DOMAIN} xvwa.${DOMAIN} vwa.${DOMAIN} juiceshop.${DOMAIN} webgoat.${DOMAIN} webwolf.${DOMAIN} tomcat.${DOMAIN} wrongsecrets.${DOMAIN} securityshepherd.${DOMAIN} vulnerableapp.${DOMAIN} vulnerableapp-facade.${DOMAIN} crapi.${DOMAIN} crapi-mailhog.${DOMAIN} brokencrystals.${DOMAIN} brokencrystals-mailcatcher.${DOMAIN} dvws.${DOMAIN} zerohealth.${DOMAIN} zerohealth-api.${DOMAIN} restaurant.${DOMAIN};
     
     # Redirect all HTTP requests to HTTPS (running on mapped port 443 on the host)
     return 301 https://$host$request_uri;
+}
+
+# 0. Landing Portal Dashboard
+server {
+    listen 8443 ssl default_server;
+    server_name ${DOMAIN} localhost;
+
+    ssl_certificate /etc/nginx/ssl/owasp.crt;
+    ssl_certificate_key /etc/nginx/ssl/owasp.key;
+
+    location / {
+        root /usr/share/nginx/html;
+        index index.html;
+    }
 }
 
 # 1. Mutillidae II
