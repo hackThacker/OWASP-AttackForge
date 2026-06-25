@@ -10,3 +10,4 @@ docs/cicd/prompt.md
 .env.local
 .env.development
 *.log
+RELEASE_NOTES_DRAFT.md

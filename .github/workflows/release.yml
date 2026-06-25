@@ -59,20 +59,29 @@ jobs:
     environment:
       name: Production
       url: https://production.owasp.hacking
+    outputs:
+      release_title: ${{ steps.notes.outputs.release_title }}
     permissions:
       contents: write
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # Required for git log to access commit history
 
-      - name: Create GitHub Release
+      - name: Generate Dynamic Release Notes
+        id: notes
+        run: |
+          python .github/scripts/generate-release-notes.py
+
+      - name: Create Draft GitHub Release
         id: create_release
         uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ github.ref_name }}
-          name: "Release ${{ github.ref_name }}"
-          body_path: RELEASE_NOTES.md
-          draft: false
+          name: ${{ steps.notes.outputs.release_title }}
+          body_path: RELEASE_NOTES_DRAFT.md
+          draft: true
           prerelease: false
 
   publish-production-images:
@@ -90,3 +99,88 @@ jobs:
     with:
       version: ${{ github.ref_name }}
     secrets: inherit
+
+  verify-release:
+    name: Verify & Finalize Release
+    needs: [production, publish-production-images, attest-images]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      packages: read
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Log in to Docker Hub (Conditional)
+        run: |
+          if [ -n "${{ secrets.DOCKERHUB_USERNAME }}" ]; then
+            echo "${{ secrets.DOCKERHUB_TOKEN }}" | docker login -u "${{ secrets.DOCKERHUB_USERNAME }}" --password-stdin
+          fi
+
+      - name: Validate Release Registries & Finalize Release Notes
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          GHCR_ORG="${{ github.repository_owner }}"
+          DOCKER_ORG="${{ secrets.DOCKERHUB_USERNAME }}"
+          TAG="${{ github.ref_name }}"
+          
+          echo "Verifying draft release exists on GitHub..."
+          gh release view "${TAG}" --json isDraft
+          
+          echo "Verifying package exists on GHCR..."
+          docker buildx imagetools inspect "ghcr.io/${GHCR_ORG}/attackforge:${TAG}"
+          
+          # Extract digest from registry
+          DIGEST=$(docker buildx imagetools inspect "ghcr.io/${GHCR_ORG}/attackforge:${TAG}" | grep -m1 "Digest:" | awk '{print $2}')
+          echo "Extracted Image Digest: ${DIGEST}"
+          
+          DOCKERHUB_STATUS=""
+          DOCKERHUB_PULL_CMD="docker pull ghcr.io/${GHCR_ORG}/attackforge:${TAG} # (Docker Hub not configured)"
+          if [ -n "${DOCKER_ORG}" ]; then
+            echo "Verifying package exists on Docker Hub..."
+            docker buildx imagetools inspect "docker.io/${DOCKER_ORG}/attackforge:${TAG}"
+            DOCKERHUB_STATUS="✓ Docker Hub Published"
+            DOCKERHUB_PULL_CMD="docker pull ${DOCKER_ORG}/attackforge:${TAG}"
+          fi
+          
+          echo "Appending registry status and digest checksums to release notes..."
+          gh release view "${TAG}" --json body --jq .body > release_body.md
+          
+          cat <<EOF >> release_body.md
+
+          ## Packages
+
+          Docker Hub:
+          \`\`\`bash
+          ${DOCKERHUB_PULL_CMD}
+          \`\`\`
+
+          GHCR:
+          \`\`\`bash
+          docker pull ghcr.io/${GHCR_ORG}/attackforge:${TAG}
+          \`\`\`
+
+          ## Checksums
+
+          Image Digest:
+          \`${DIGEST}\`
+
+          ## Registry Status
+
+          ${DOCKERHUB_STATUS:+"${DOCKERHUB_STATUS}"}
+          ✓ GitHub Container Registry Published
+          EOF
+          
+          echo "Finalizing and publishing release..."
+          gh release edit "${TAG}" --notes-file release_body.md --draft=false

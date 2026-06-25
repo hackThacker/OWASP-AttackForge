@@ -28,6 +28,7 @@ jobs:
       fail-fast: false
       matrix:
         service:
+          - attackforge
           - nginx
           - mutillidae
           - dvwa
@@ -60,6 +61,17 @@ jobs:
           VERSION="${{ inputs.version || github.event.release.tag_name || 'latest' }}"
           echo "version=${VERSION}" >> $GITHUB_OUTPUT
 
+      - name: Set Image Name
+        id: set_image
+        run: |
+          if [ "${{ matrix.service }}" = "attackforge" ]; then
+            echo "fullname=ghcr.io/${{ github.repository_owner }}/attackforge:${{ steps.parse_version.outputs.version }}" >> $GITHUB_OUTPUT
+            echo "subject=ghcr.io/${{ github.repository_owner }}/attackforge" >> $GITHUB_OUTPUT
+          else
+            echo "fullname=ghcr.io/${{ github.repository_owner }}/attackforge-${{ matrix.service }}:${{ steps.parse_version.outputs.version }}" >> $GITHUB_OUTPUT
+            echo "subject=ghcr.io/${{ github.repository_owner }}/attackforge-${{ matrix.service }}" >> $GITHUB_OUTPUT
+          fi
+
       - name: Log in to GHCR
         uses: docker/login-action@v3
         with:
@@ -73,18 +85,18 @@ jobs:
       - name: Generate SBOM (CycloneDX)
         uses: anchore/sbom-action@v0.16.0
         with:
-          image: ghcr.io/${{ github.repository_owner }}/attackforge-${{ matrix.service }}:${{ steps.parse_version.outputs.version }}
+          image: ${{ steps.set_image.outputs.fullname }}
           output-format: cyclonedx-json
           artifact-name: sbom-${{ matrix.service }}.json
 
       - name: Sign GHCR Image with Cosign
         run: |
-          cosign sign --yes ghcr.io/${{ github.repository_owner }}/attackforge-${{ matrix.service }}:${{ steps.parse_version.outputs.version }}
+          cosign sign --yes ${{ steps.set_image.outputs.fullname }}
 
       - name: Attest SBOM (SLSA Attestation)
         uses: actions/attest@v1
         with:
-          subject-name: ghcr.io/${{ github.repository_owner }}/attackforge-${{ matrix.service }}
+          subject-name: ${{ steps.set_image.outputs.subject }}
           subject-digest: ${{ steps.parse_version.outputs.version }} # Or tag reference
           predicate-type: 'https://cyclonedx.org/bom'
           predicate-path: 'sbom-${{ matrix.service }}.json'

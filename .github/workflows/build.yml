@@ -171,6 +171,28 @@ jobs:
             ghcr.io/${GHCR_ORG}/attackforge-${SERVICE}:${CLEAN_REF}
             "
           fi
+
+          # If this is the nginx service (acting as our primary frontdoor proxy),
+          # also publish it as the unified 'attackforge' primary package.
+          if [ "$SERVICE" = "nginx" ]; then
+            TAGS="${TAGS}docker.io/${DOCKER_ORG}/attackforge:${SHA}
+            ghcr.io/${GHCR_ORG}/attackforge:${SHA}
+            "
+            if [[ "$TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+              TAGS="${TAGS}docker.io/${DOCKER_ORG}/attackforge:latest
+              docker.io/${DOCKER_ORG}/attackforge:${TAG}
+              ghcr.io/${GHCR_ORG}/attackforge:latest
+              ghcr.io/${GHCR_ORG}/attackforge:${TAG}
+              "
+            else
+              CLEAN_REF=$(echo "$TAG" | sed 's/[^a-zA-Z0-9.-]/_/g')
+              TAGS="${TAGS}docker.io/${DOCKER_ORG}/attackforge:latest
+              docker.io/${DOCKER_ORG}/attackforge:${CLEAN_REF}
+              ghcr.io/${GHCR_ORG}/attackforge:latest
+              ghcr.io/${GHCR_ORG}/attackforge:${CLEAN_REF}
+              "
+            fi
+          fi
           
           # Output back as environment/variables
           echo "tags<<EOF" >> $GITHUB_OUTPUT
