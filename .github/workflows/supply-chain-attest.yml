@@ -64,12 +64,13 @@ jobs:
       - name: Set Image Name
         id: set_image
         run: |
+          GHCR_ORG=$(echo "${{ github.repository_owner }}" | tr '[:upper:]' '[:lower:]')
           if [ "${{ matrix.service }}" = "attackforge" ]; then
-            echo "fullname=ghcr.io/${{ github.repository_owner }}/attackforge:${{ steps.parse_version.outputs.version }}" >> $GITHUB_OUTPUT
-            echo "subject=ghcr.io/${{ github.repository_owner }}/attackforge" >> $GITHUB_OUTPUT
+            echo "fullname=ghcr.io/${GHCR_ORG}/attackforge:${{ steps.parse_version.outputs.version }}" >> $GITHUB_OUTPUT
+            echo "subject=ghcr.io/${GHCR_ORG}/attackforge" >> $GITHUB_OUTPUT
           else
-            echo "fullname=ghcr.io/${{ github.repository_owner }}/attackforge-${{ matrix.service }}:${{ steps.parse_version.outputs.version }}" >> $GITHUB_OUTPUT
-            echo "subject=ghcr.io/${{ github.repository_owner }}/attackforge-${{ matrix.service }}" >> $GITHUB_OUTPUT
+            echo "fullname=ghcr.io/${GHCR_ORG}/attackforge-${{ matrix.service }}:${{ steps.parse_version.outputs.version }}" >> $GITHUB_OUTPUT
+            echo "subject=ghcr.io/${GHCR_ORG}/attackforge-${{ matrix.service }}" >> $GITHUB_OUTPUT
           fi
 
       - name: Log in to GHCR

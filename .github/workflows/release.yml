@@ -142,7 +142,7 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          GHCR_ORG="${{ github.repository_owner }}"
+          GHCR_ORG=$(echo "${{ github.repository_owner }}" | tr '[:upper:]' '[:lower:]')
           DOCKER_ORG="${{ secrets.DOCKERHUB_USERNAME }}"
           TAG="${{ github.ref_name }}"
           

@@ -135,7 +135,7 @@ jobs:
         id: generate_tags
         run: |
           DOCKER_ORG="${{ secrets.DOCKERHUB_USERNAME }}"
-          GHCR_ORG="${{ github.repository_owner }}"
+          GHCR_ORG=$(echo "${{ github.repository_owner }}" | tr '[:upper:]' '[:lower:]')
           SERVICE="${{ matrix.service.image_name }}"
           SHA="sha-$(git rev-parse --short HEAD)"
           
