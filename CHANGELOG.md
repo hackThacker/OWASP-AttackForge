@@ -48,6 +48,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Integrate seven new vulnerable applications to the cyber range ([b25ed9c](https://github.com/hackThacker/OWASP-AttackForge/commit/b25ed9cc85f3279168722e8b5da9524c3120fa8a))
 
+- *(release)* Refactor release management and automated package verification pipeline ([c466caf](https://github.com/hackThacker/OWASP-AttackForge/commit/c466caf3545e2b9446dffd35febb44910646a084))
+
 
 ### Miscellaneous Chores
 
@@ -58,6 +60,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - *(changelog)* Update CHANGELOG.md for v1.1.0 [skip ci] ([b9d6122](https://github.com/hackThacker/OWASP-AttackForge/commit/b9d612250dd7dba72fd63bf305443e76930597d6))
 
 - *(changelog)* Update CHANGELOG.md for v1.1.0 [skip ci] ([a0912bd](https://github.com/hackThacker/OWASP-AttackForge/commit/a0912bdb6ea3e453410e64f74c15a66eafe42bf8))
+
+- *(changelog)* Update CHANGELOG.md for v1.1.0 [skip ci] ([bc8ddc7](https://github.com/hackThacker/OWASP-AttackForge/commit/bc8ddc71482a80c8b1145dfc9666e236c1fd02aa))
 
 
 ## [1.0.0] - 2026-06-24
