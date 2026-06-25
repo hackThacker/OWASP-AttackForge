@@ -1,0 +1,12 @@
+check-owasp-lab.sh
+install-owasp-lab.sh
+owasp-apps.conf
+uninstall-owasp-lab.sh
+mistake
+docs/cicd/prompt.md
+.env
+.env.production
+.env.staging
+.env.local
+.env.development
+*.log
