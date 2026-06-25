@@ -9,7 +9,7 @@ resolver 127.0.0.11 valid=10s ipv6=off;
 # Global HTTP redirect to HTTPS
 server {
     listen 8080;
-    server_name mutillidae.${DOMAIN} dvwa.${DOMAIN} bwapp.${DOMAIN} xvwa.${DOMAIN} vwa.${DOMAIN} juiceshop.${DOMAIN} webgoat.${DOMAIN} webwolf.${DOMAIN} tomcat.${DOMAIN} wrongsecrets.${DOMAIN} securityshepherd.${DOMAIN};
+    server_name mutillidae.${DOMAIN} dvwa.${DOMAIN} bwapp.${DOMAIN} xvwa.${DOMAIN} vwa.${DOMAIN} juiceshop.${DOMAIN} webgoat.${DOMAIN} webwolf.${DOMAIN} tomcat.${DOMAIN} wrongsecrets.${DOMAIN} securityshepherd.${DOMAIN} vulnerableapp.${DOMAIN} vulnerableapp-facade.${DOMAIN} crapi.${DOMAIN} crapi-mailhog.${DOMAIN} brokencrystals.${DOMAIN} brokencrystals-mailcatcher.${DOMAIN} dvws.${DOMAIN} zerohealth.${DOMAIN} zerohealth-api.${DOMAIN} restaurant.${DOMAIN};
     
     # Redirect all HTTP requests to HTTPS (running on mapped port 443 on the host)
     return 301 https://$host$request_uri;
@@ -211,5 +211,167 @@ server {
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
         proxy_set_header X-Forwarded-Proto $scheme;
         proxy_redirect http:// https://;
+    }
+}
+
+# 12. SasanLabs VulnerableApp Facade
+server {
+    listen 8443 ssl;
+    server_name vulnerableapp.${DOMAIN} vulnerableapp-facade.${DOMAIN};
+
+    ssl_certificate /etc/nginx/ssl/owasp.crt;
+    ssl_certificate_key /etc/nginx/ssl/owasp.key;
+
+    location / {
+        set $upstream_vulnerableapp_facade vulnerableapp-facade;
+        proxy_pass http://$upstream_vulnerableapp_facade:80;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+}
+
+# 13. OWASP crAPI
+server {
+    listen 8443 ssl;
+    server_name crapi.${DOMAIN};
+
+    ssl_certificate /etc/nginx/ssl/owasp.crt;
+    ssl_certificate_key /etc/nginx/ssl/owasp.key;
+
+    location / {
+        set $upstream_crapi_web crapi-web;
+        proxy_pass http://$upstream_crapi_web:80;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+}
+
+# 14. crAPI Mailhog
+server {
+    listen 8443 ssl;
+    server_name crapi-mailhog.${DOMAIN};
+
+    ssl_certificate /etc/nginx/ssl/owasp.crt;
+    ssl_certificate_key /etc/nginx/ssl/owasp.key;
+
+    location / {
+        set $upstream_crapi_mailhog crapi-mailhog;
+        proxy_pass http://$upstream_crapi_mailhog:8025;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+}
+
+# 15. Broken Crystals
+server {
+    listen 8443 ssl;
+    server_name brokencrystals.${DOMAIN};
+
+    ssl_certificate /etc/nginx/ssl/owasp.crt;
+    ssl_certificate_key /etc/nginx/ssl/owasp.key;
+
+    location / {
+        set $upstream_brokencrystals brokencrystals-app;
+        proxy_pass http://$upstream_brokencrystals:3000;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+}
+
+# 16. Broken Crystals MailCatcher
+server {
+    listen 8443 ssl;
+    server_name brokencrystals-mailcatcher.${DOMAIN};
+
+    ssl_certificate /etc/nginx/ssl/owasp.crt;
+    ssl_certificate_key /etc/nginx/ssl/owasp.key;
+
+    location / {
+        set $upstream_brokencrystals_mailcatcher brokencrystals-mailcatcher;
+        proxy_pass http://$upstream_brokencrystals_mailcatcher:1080;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+}
+
+# 17. DVWS Node
+server {
+    listen 8443 ssl;
+    server_name dvws.${DOMAIN};
+
+    ssl_certificate /etc/nginx/ssl/owasp.crt;
+    ssl_certificate_key /etc/nginx/ssl/owasp.key;
+
+    location / {
+        set $upstream_dvws_node dvws-node;
+        proxy_pass http://$upstream_dvws_node:80;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+}
+
+# 18. Zero Health Client
+server {
+    listen 8443 ssl;
+    server_name zerohealth.${DOMAIN};
+
+    ssl_certificate /etc/nginx/ssl/owasp.crt;
+    ssl_certificate_key /etc/nginx/ssl/owasp.key;
+
+    location / {
+        set $upstream_zerohealth_client zerohealth-client;
+        proxy_pass http://$upstream_zerohealth_client:3000;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+}
+
+# 19. Zero Health Server API
+server {
+    listen 8443 ssl;
+    server_name zerohealth-api.${DOMAIN};
+
+    ssl_certificate /etc/nginx/ssl/owasp.crt;
+    ssl_certificate_key /etc/nginx/ssl/owasp.key;
+
+    location / {
+        set $upstream_zerohealth_server zerohealth-server;
+        proxy_pass http://$upstream_zerohealth_server:5000;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+}
+
+# 20. Damn Vulnerable RESTaurant API Game
+server {
+    listen 8443 ssl;
+    server_name restaurant.${DOMAIN};
+
+    ssl_certificate /etc/nginx/ssl/owasp.crt;
+    ssl_certificate_key /etc/nginx/ssl/owasp.key;
+
+    location / {
+        set $upstream_restaurant restaurant-app;
+        proxy_pass http://$upstream_restaurant:8091;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
     }
 }

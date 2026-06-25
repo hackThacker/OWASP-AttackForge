@@ -103,6 +103,34 @@ jobs:
             context: ./docker/securityshepherd
             dockerfile: Dockerfile.web
             image_name: securityshepherd
+          - name: brokencrystals-db
+            context: ./docker/brokencrystals-db
+            dockerfile: Dockerfile
+            image_name: brokencrystals-db
+          - name: brokencrystals-keycloak
+            context: ./docker/brokencrystals-keycloak
+            dockerfile: Dockerfile
+            image_name: brokencrystals-keycloak
+          - name: brokencrystals-app
+            context: ./docker/brokencrystals-app
+            dockerfile: Dockerfile
+            image_name: brokencrystals-app
+          - name: dvws-node
+            context: ./docker/dvws-node
+            dockerfile: Dockerfile
+            image_name: dvws-node
+          - name: zerohealth-server
+            context: ./docker/zerohealth-server
+            dockerfile: Dockerfile
+            image_name: zerohealth-server
+          - name: zerohealth-client
+            context: ./docker/zerohealth-client
+            dockerfile: Dockerfile
+            image_name: zerohealth-client
+          - name: restaurant-app
+            context: ./docker/restaurant
+            dockerfile: Dockerfile
+            image_name: restaurant-app
 
     steps:
       - name: Checkout Code

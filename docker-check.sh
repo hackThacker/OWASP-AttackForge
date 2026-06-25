@@ -74,6 +74,12 @@ check_container "hackthacker-labs-wrongsecrets" "OWASP WrongSecrets"
 check_container "hackthacker-labs-securityshepherd-db" "SecShepherd DB"
 check_container "hackthacker-labs-securityshepherd-mongo" "SecShepherd NoSQL"
 check_container "hackthacker-labs-securityshepherd" "OWASP SecShepherd"
+check_container "hackthacker-labs-vulnerableapp-facade" "VulnerableApp Facade"
+check_container "hackthacker-labs-crapi-web"   "crAPI Frontend"
+check_container "hackthacker-labs-brokencrystals-app" "Broken Crystals Web"
+check_container "hackthacker-labs-dvws-node"   "DVWS Node App"
+check_container "hackthacker-labs-zerohealth-client" "ZeroHealth Frontend"
+check_container "hackthacker-labs-restaurant-app" "RESTaurant App"
 echo ""
 
 # Helper to verify HTTP status code via Nginx proxy (binding to 127.0.0.1:443 locally)
@@ -112,6 +118,15 @@ check_endpoint "webwolf"    "WebWolf"        "/login"            "(Same as WebGo
 check_endpoint "tomcat"     "Tomcat Console" "/"                 "${DB_USER:-hackthacker} / ${DB_PASS:-hackthacker}"
 check_endpoint "wrongsecrets" "WrongSecrets"   "/"                 "(Challenges/No Creds)"
 check_endpoint "securityshepherd" "SecurityShep"  "/"                 "admin / password"
+check_endpoint "vulnerableapp" "VulnerableApp" "/"                 "(Unified Gateway)"
+check_endpoint "crapi"         "OWASP crAPI"    "/"                 "(Register in UI)"
+check_endpoint "crapi-mailhog" "crAPI Mailhog"  "/"                 "(Mail Inbox UI)"
+check_endpoint "brokencrystals" "BrokenCrystals" "/"               "(Register in UI)"
+check_endpoint "brokencrystals-mailcatcher" "BC Mailcatcher" "/"    "(Mail Inbox UI)"
+check_endpoint "dvws"          "DVWS Node"      "/"                 "(API Challenges)"
+check_endpoint "zerohealth"    "ZeroHealth Web" "/"                 "(Health Portal UI)"
+check_endpoint "zerohealth-api" "ZeroHealth API" "/api/config"      "(API Backend Conf)"
+check_endpoint "restaurant"    "RESTaurant API" "/docs"             "(Swagger API UI)"
 echo ""
 
 echo -e "${CYN}--- Hosts entry mapping check ---------------------------------------${RST}"
@@ -120,7 +135,7 @@ if grep -q "dvwa.${LAB_DOMAIN}" /etc/hosts 2>/dev/null; then
   echo -e "  ${GRN}[✓] Hosts entry detected in /etc/hosts${RST}"
 else
   echo -e "  ${YLW}[!] Domain resolution check failed.${RST}"
-  echo -e "      Ensure your system hosts file contains mappings for the following domains:"
-  echo -e "      ${DIM}mutillidae.${LAB_DOMAIN} dvwa.${LAB_DOMAIN} bwapp.${LAB_DOMAIN} xvwa.${LAB_DOMAIN} vwa.${LAB_DOMAIN} juiceshop.${LAB_DOMAIN} webgoat.${LAB_DOMAIN} webwolf.${LAB_DOMAIN} tomcat.${LAB_DOMAIN}${RST}"
+  echo -e "      Ensure your system hosts file contains mappings for all configured domains.${RST}"
 fi
 echo -e "${CYN}======================================================================${RST}"
+

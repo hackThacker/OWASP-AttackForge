@@ -72,6 +72,13 @@ jobs:
           - "docker/securityshepherd/Dockerfile.db"
           - "docker/securityshepherd/Dockerfile.mongo"
           - "docker/securityshepherd/Dockerfile.web"
+          - "docker/brokencrystals-db/Dockerfile"
+          - "docker/brokencrystals-keycloak/Dockerfile"
+          - "docker/brokencrystals-app/Dockerfile"
+          - "docker/dvws-node/Dockerfile"
+          - "docker/zerohealth-server/Dockerfile"
+          - "docker/zerohealth-client/Dockerfile"
+          - "docker/restaurant/Dockerfile"
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
@@ -96,6 +103,10 @@ jobs:
           - tomcat:8.5-jdk8-corretto
           - mariadb:11.4
           - mongo:4.4
+          - postgres:17-alpine
+          - postgres:14-alpine
+          - postgres:15.4-alpine
+          - python:3.10-slim-bookworm
     steps:
       - name: Log in to Docker Hub
         uses: docker/login-action@v3

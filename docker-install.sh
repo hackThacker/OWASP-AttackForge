@@ -107,7 +107,7 @@ echo -e "\n${GRN}[✓] Container orchestration started successfully!${RST}\n"
 
 # 4. Hosts File Mapping Guidance
 # Build the hosts entry string
-APPS=("mutillidae" "dvwa" "bwapp" "xvwa" "vwa" "juiceshop" "webgoat" "webwolf" "tomcat" "wrongsecrets" "securityshepherd")
+APPS=("mutillidae" "dvwa" "bwapp" "xvwa" "vwa" "juiceshop" "webgoat" "webwolf" "tomcat" "wrongsecrets" "securityshepherd" "vulnerableapp" "vulnerableapp-facade" "crapi" "crapi-mailhog" "brokencrystals" "brokencrystals-mailcatcher" "dvws" "zerohealth" "zerohealth-api" "restaurant")
 HOSTS_ENTRY="127.0.0.1"
 for app in "${APPS[@]}"; do
   HOSTS_ENTRY="${HOSTS_ENTRY} ${app}.${LAB_DOMAIN}"

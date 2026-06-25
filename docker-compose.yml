@@ -8,6 +8,14 @@ networks:
 volumes:
   mariadb-data:
     name: hackthacker-labs-mariadb-data
+  postgresql-data:
+    name: hackthacker-labs-crapi-postgresql-data
+  mongodb-data:
+    name: hackthacker-labs-crapi-mongodb-data
+  chromadb-data:
+    name: hackthacker-labs-crapi-chromadb-data
+  restaurant-db-data:
+    name: hackthacker-labs-restaurant-db-data
 
 services:
   # ----------------------------------------------------------------------------
@@ -508,5 +516,800 @@ services:
       timeout: 5s
       retries: 5
       start_period: 90s
+
+  # ----------------------------------------------------------------------------
+  # SasanLabs VulnerableApp Farm
+  # ----------------------------------------------------------------------------
+  vulnerableapp-base:
+    image: sasanlabs/owasp-vulnerableapp:latest
+    container_name: hackthacker-labs-vulnerableapp-base
+    restart: unless-stopped
+    networks:
+      hackthacker:
+        aliases:
+          - VulnerableApp-base
+    deploy:
+      resources:
+        limits:
+          cpus: '0.25'
+          memory: 256M
+
+  vulnerableapp-jsp:
+    image: sasanlabs/owasp-vulnerableapp-jsp:latest
+    container_name: hackthacker-labs-vulnerableapp-jsp
+    restart: unless-stopped
+    networks:
+      hackthacker:
+        aliases:
+          - VulnerableApp-jsp
+    deploy:
+      resources:
+        limits:
+          cpus: '0.25'
+          memory: 256M
+
+  vulnerableapp-php:
+    image: sasanlabs/owasp-vulnerableapp-php:latest
+    container_name: hackthacker-labs-vulnerableapp-php
+    restart: unless-stopped
+    networks:
+      hackthacker:
+        aliases:
+          - VulnerableApp-php
+    deploy:
+      resources:
+        limits:
+          cpus: '0.25'
+          memory: 128M
+
+  vulnerableapp-facade:
+    image: sasanlabs/owasp-vulnerableapp-facade:latest
+    container_name: hackthacker-labs-vulnerableapp-facade
+    restart: unless-stopped
+    networks:
+      hackthacker:
+        aliases:
+          - VulnerableApp-facade
+    depends_on:
+      - vulnerableapp-base
+      - vulnerableapp-jsp
+      - vulnerableapp-php
+    deploy:
+      resources:
+        limits:
+          cpus: '0.25'
+          memory: 256M
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:80/ || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+  # ----------------------------------------------------------------------------
+  # OWASP crAPI Tier
+  # ----------------------------------------------------------------------------
+  crapi-postgresdb:
+    container_name: hackthacker-labs-crapi-postgresdb
+    image: postgres:14-alpine
+    command: ["postgres", "-c", "max_connections=500"]
+    environment:
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: crapisecretpassword
+      POSTGRES_DB: crapi
+    networks:
+      hackthacker:
+        aliases:
+          - postgresdb
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U admin -d crapi" ]
+      interval: 15s
+      timeout: 10s
+      retries: 5
+    deploy:
+      resources:
+        limits:
+          cpus: '0.25'
+          memory: 128M
+
+  crapi-mongodb:
+    container_name: hackthacker-labs-crapi-mongodb
+    image: mongo:4.4
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: admin
+      MONGO_INITDB_ROOT_PASSWORD: crapisecretpassword
+    networks:
+      hackthacker:
+        aliases:
+          - mongodb
+    healthcheck:
+      test: echo 'db.runCommand("ping").ok' | mongo mongodb:27017/test --quiet
+      interval: 15s
+      timeout: 10s
+      retries: 5
+      start_period: 20s
+    deploy:
+      resources:
+        limits:
+          cpus: '0.25'
+          memory: 128M
+
+  crapi-chromadb:
+    container_name: hackthacker-labs-crapi-chromadb
+    image: chromadb/chroma:latest
+    environment:
+      IS_PERSISTENT: 'TRUE'
+    networks:
+      hackthacker:
+        aliases:
+          - chromadb
+    healthcheck:
+      test: [ "CMD", "/bin/bash", "-c", "cat < /dev/null > /dev/tcp/localhost/8000" ]
+      interval: 15s
+      timeout: 10s
+      retries: 5
+      start_period: 20s
+    deploy:
+      resources:
+        limits:
+          cpus: '0.25'
+          memory: 128M
+
+  crapi-mailhog:
+    user: root
+    container_name: hackthacker-labs-crapi-mailhog
+    image: crapi/mailhog:latest
+    environment:
+      MH_MONGO_URI: admin:crapisecretpassword@mongodb:27017
+      MH_STORAGE: mongodb
+    networks:
+      hackthacker:
+        aliases:
+          - mailhog
+    healthcheck:
+      test: [ "CMD", "nc", "-z", "localhost", "8025" ]
+      interval: 15s
+      timeout: 10s
+      retries: 5
+    deploy:
+      resources:
+        limits:
+          cpus: '0.25'
+          memory: 64M
+
+  crapi-gateway:
+    container_name: hackthacker-labs-crapi-gateway
+    image: crapi/gateway-service:latest
+    networks:
+      hackthacker:
+        aliases:
+          - api.mypremiumdealership.com
+    healthcheck:
+      test: bash -c 'echo -n "GET / HTTP/1.1\n\n" > /dev/tcp/127.0.0.1/443'
+      interval: 15s
+      timeout: 10s
+      retries: 5
+      start_period: 15s
+    deploy:
+      resources:
+        limits:
+          cpus: '0.1'
+          memory: 50M
+
+  crapi-identity:
+    container_name: hackthacker-labs-crapi-identity
+    image: crapi/crapi-identity:latest
+    networks:
+      - hackthacker
+    environment:
+      - LOG_LEVEL=INFO
+      - DB_NAME=crapi
+      - DB_USER=admin
+      - DB_PASSWORD=crapisecretpassword
+      - DB_HOST=postgresdb
+      - DB_PORT=5432
+      - SERVER_PORT=8080
+      - ENABLE_SHELL_INJECTION=false
+      - JWT_SECRET=crapi
+      - MAILHOG_HOST=mailhog
+      - MAILHOG_PORT=1025
+      - MAILHOG_DOMAIN=example.com
+      - SMTP_HOST=smtp.example.com
+      - SMTP_PORT=587
+      - SMTP_EMAIL=user@example.com
+      - SMTP_PASS=xxxxxxxxxxxxxx
+      - SMTP_FROM=no-reply@example.com
+      - SMTP_AUTH=true
+      - SMTP_STARTTLS=true
+      - JWT_EXPIRATION=604800000
+      - ENABLE_LOG4J=false
+      - API_GATEWAY_URL=https://api.mypremiumdealership.com
+      - TLS_ENABLED=false
+      - TLS_KEYSTORE_TYPE=PKCS12
+      - TLS_KEYSTORE=classpath:certs/server.p12
+      - TLS_KEYSTORE_PASSWORD=passw0rd
+      - TLS_KEY_PASSWORD=passw0rd
+      - TLS_KEY_ALIAS=identity
+    depends_on:
+      crapi-postgresdb:
+        condition: service_healthy
+      crapi-mongodb:
+        condition: service_healthy
+      crapi-mailhog:
+        condition: service_healthy
+    healthcheck:
+      test: /app/health.sh
+      interval: 15s
+      timeout: 15s
+      retries: 5
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 256M
+
+  crapi-community:
+    container_name: hackthacker-labs-crapi-community
+    image: crapi/crapi-community:latest
+    networks:
+      - hackthacker
+    environment:
+      - LOG_LEVEL=INFO
+      - IDENTITY_SERVICE=crapi-identity:8080
+      - DB_NAME=crapi
+      - DB_USER=admin
+      - DB_PASSWORD=crapisecretpassword
+      - DB_HOST=postgresdb
+      - DB_PORT=5432
+      - SERVER_PORT=8087
+      - MONGO_DB_HOST=mongodb
+      - MONGO_DB_PORT=27017
+      - MONGO_DB_USER=admin
+      - MONGO_DB_PASSWORD=crapisecretpassword
+      - MONGO_DB_NAME=crapi
+      - TLS_ENABLED=false
+      - TLS_CERTIFICATE=certs/server.crt
+      - TLS_KEY=certs/server.key
+    depends_on:
+      crapi-postgresdb:
+        condition: service_healthy
+      crapi-mongodb:
+        condition: service_healthy
+      crapi-identity:
+        condition: service_healthy
+    healthcheck:
+      test: /app/health.sh
+      interval: 15s
+      timeout: 15s
+      retries: 5
+    deploy:
+      resources:
+        limits:
+          cpus: '0.25'
+          memory: 128M
+
+  crapi-workshop:
+    container_name: hackthacker-labs-crapi-workshop
+    image: crapi/crapi-workshop:latest
+    networks:
+      - hackthacker
+    environment:
+      - LOG_LEVEL=INFO
+      - IDENTITY_SERVICE=crapi-identity:8080
+      - DB_NAME=crapi
+      - DB_USER=admin
+      - DB_PASSWORD=crapisecretpassword
+      - DB_HOST=postgresdb
+      - DB_PORT=5432
+      - SERVER_PORT=8000
+      - MONGO_DB_HOST=mongodb
+      - MONGO_DB_PORT=27017
+      - MONGO_DB_USER=admin
+      - MONGO_DB_PASSWORD=crapisecretpassword
+      - MONGO_DB_NAME=crapi
+      - SECRET_KEY=crapi
+      - API_GATEWAY_URL=https://api.mypremiumdealership.com
+      - TLS_ENABLED=false
+      - TLS_CERTIFICATE=certs/server.crt
+      - TLS_KEY=certs/server.key
+      - FILES_LIMIT=1000
+    depends_on:
+      crapi-postgresdb:
+        condition: service_healthy
+      crapi-mongodb:
+        condition: service_healthy
+      crapi-identity:
+        condition: service_healthy
+      crapi-community:
+        condition: service_healthy
+    healthcheck:
+      test: /app/health.sh
+      interval: 15s
+      timeout: 15s
+      retries: 5
+    deploy:
+      resources:
+        limits:
+          cpus: '0.25'
+          memory: 128M
+
+  crapi-chatbot:
+    container_name: hackthacker-labs-crapi-chatbot
+    image: crapi/crapi-chatbot:latest
+    networks:
+      - hackthacker
+    environment:
+      - TLS_ENABLED=false
+      - SERVER_PORT=5002
+      - WEB_SERVICE=crapi-web
+      - IDENTITY_SERVICE=crapi-identity:8080
+      - DB_NAME=crapi
+      - DB_USER=admin
+      - DB_PASSWORD=crapisecretpassword
+      - DB_HOST=postgresdb
+      - DB_PORT=5432
+      - MONGO_DB_HOST=mongodb
+      - MONGO_DB_PORT=27017
+      - MONGO_DB_USER=admin
+      - MONGO_DB_PASSWORD=crapisecretpassword
+      - MONGO_DB_NAME=crapi
+      - API_USER=admin@example.com
+      - API_PASSWORD=Admin!123
+      - OPENAPI_SPEC=/app/resources/crapi-openapi-spec.json
+      - DEFAULT_MODEL=gpt-4o-mini
+      - CHROMA_HOST=chromadb
+      - CHROMA_PORT=8000
+    depends_on:
+      crapi-mongodb:
+        condition: service_healthy
+      crapi-identity:
+        condition: service_healthy
+      crapi-chromadb:
+        condition: service_healthy
+    deploy:
+      resources:
+        limits:
+          cpus: '0.25'
+          memory: 128M
+
+  crapi-web:
+    container_name: hackthacker-labs-crapi-web
+    image: crapi/crapi-web:latest
+    networks:
+      - hackthacker
+    environment:
+      - COMMUNITY_SERVICE=crapi-community:8087
+      - IDENTITY_SERVICE=crapi-identity:8080
+      - WORKSHOP_SERVICE=crapi-workshop:8000
+      - CHATBOT_SERVICE=crapi-chatbot:5002
+      - MAILHOG_WEB_SERVICE=mailhog:8025
+      - TLS_ENABLED=false
+    depends_on:
+      crapi-community:
+        condition: service_healthy
+      crapi-identity:
+        condition: service_healthy
+      crapi-workshop:
+        condition: service_healthy
+    healthcheck:
+      test: curl 0.0.0.0:80/health
+      interval: 15s
+      timeout: 10s
+      retries: 5
+    deploy:
+      resources:
+        limits:
+          cpus: '0.25'
+          memory: 128M
+
+  # ----------------------------------------------------------------------------
+  # Broken Crystals Tier
+  # ----------------------------------------------------------------------------
+  brokencrystals-db:
+    build:
+      context: ./docker/brokencrystals-db
+      dockerfile: Dockerfile
+    image: hackthacker-labs-brokencrystals-db
+    container_name: hackthacker-labs-brokencrystals-db
+    restart: always
+    networks:
+      hackthacker:
+        aliases:
+          - db
+    environment:
+      POSTGRES_DB: bc
+      POSTGRES_USER: bc
+      POSTGRES_PASSWORD: bc
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -d bc -U bc']
+      interval: 10s
+      timeout: 10s
+      retries: 5
+    deploy:
+      resources:
+        limits:
+          cpus: '0.25'
+          memory: 128M
+
+  brokencrystals-keycloak-db:
+    image: postgres:17-alpine
+    container_name: hackthacker-labs-brokencrystals-keycloak-db
+    restart: always
+    networks:
+      hackthacker:
+        aliases:
+          - keycloak-db
+    environment:
+      POSTGRES_DB: keycloak
+      POSTGRES_USER: keycloak
+      POSTGRES_PASSWORD: password
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -d keycloak -U keycloak']
+      interval: 10s
+      timeout: 10s
+      retries: 5
+    deploy:
+      resources:
+        limits:
+          cpus: '0.25'
+          memory: 128M
+
+  brokencrystals-keycloak:
+    build:
+      context: ./docker/brokencrystals-keycloak
+      dockerfile: Dockerfile
+    image: hackthacker-labs-brokencrystals-keycloak
+    container_name: hackthacker-labs-brokencrystals-keycloak
+    restart: always
+    networks:
+      hackthacker:
+        aliases:
+          - keycloak
+    command: start-dev --import-realm
+    environment:
+      KC_DB: postgres
+      KC_DB_URL: jdbc:postgresql://keycloak-db:5432/keycloak
+      KC_DB_USERNAME: keycloak
+      KC_DB_PASSWORD: password
+      KC_HOSTNAME_STRICT: "false"
+      KC_HOSTNAME_STRICT_HTTPS: "false"
+      KC_BOOTSTRAP_ADMIN_USERNAME: admin
+      KC_BOOTSTRAP_ADMIN_PASSWORD: Pa55w0rd
+      KC_HEALTH_ENABLED: "true"
+    healthcheck:
+      test: ["CMD-SHELL", "exec 3<>/dev/tcp/localhost/9000;echo -e \"GET /health/ready HTTP/1.1\r\nhost: localhost:9000\r\nConnection: close\r\n\r\n\" >&3;grep \"HTTP/1.1 200 OK\" <&3"]
+      timeout: 10s
+      interval: 15s
+      retries: 5
+    depends_on:
+      brokencrystals-keycloak-db:
+        condition: service_healthy
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 384M
+
+  brokencrystals-mailcatcher:
+    image: sj26/mailcatcher
+    container_name: hackthacker-labs-brokencrystals-mailcatcher
+    restart: always
+    networks:
+      hackthacker:
+        aliases:
+          - mailcatcher
+    healthcheck:
+      test: ['CMD', 'wget', '--spider', '-q', 'http://localhost:1080']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    deploy:
+      resources:
+        limits:
+          cpus: '0.1'
+          memory: 64M
+
+  brokencrystals-ollama:
+    image: brightsec/brokencrystals-ollama:smollm135m
+    container_name: hackthacker-labs-brokencrystals-ollama
+    restart: always
+    networks:
+      hackthacker:
+        aliases:
+          - ollama
+    healthcheck:
+      test: ['CMD', 'ollama', 'list']
+      interval: 15s
+      timeout: 10s
+      retries: 5
+    deploy:
+      resources:
+        limits:
+          cpus: '0.25'
+          memory: 256M
+
+  brokencrystals-app:
+    build:
+      context: ./docker/brokencrystals-app
+      dockerfile: Dockerfile
+    image: hackthacker-labs-brokencrystals-app
+    container_name: hackthacker-labs-brokencrystals-app
+    restart: always
+    networks:
+      hackthacker:
+        aliases:
+          - nodejs
+    environment:
+      URL: http://localhost:3000
+      GRPC_WEB_PROXY_URL: http://grpcwebproxy:8081
+      DATABASE_HOST: db
+      DATABASE_SCHEMA: bc
+      DATABASE_USER: bc
+      DATABASE_PASSWORD: bc
+      DATABASE_PORT: 5432
+      JWT_SECRET_KEY: "1234"
+      KEYCLOAK_SERVER_URI: http://keycloak:8080
+      KEYCLOAK_REALM: brokencrystals
+      KEYCLOAK_ADMIN_CLIENT_ID: admin-cli
+      KEYCLOAK_ADMIN_CLIENT_SECRET: 3abff4a7-6649-4bae-a105-9bd1fb52a2cd
+      KEYCLOAK_PUBLIC_CLIENT_ID: brokencrystals-client
+      KEYCLOAK_PUBLIC_CLIENT_SECRET: 4bfb5df6-4647-46dd-bad1-c8b8ffd7caf4
+      CHAT_API_URL: http://ollama:11434/v1/chat/completions
+      CHAT_API_MODEL: smollm:135m
+      CHAT_API_MAX_TOKENS: 200
+    depends_on:
+      brokencrystals-db:
+        condition: service_healthy
+      brokencrystals-mailcatcher:
+        condition: service_healthy
+      brokencrystals-keycloak:
+        condition: service_healthy
+      brokencrystals-ollama:
+        condition: service_healthy
+    healthcheck:
+      test: ['CMD', 'wget', '--spider', '-q', 'http://localhost:3000/api/config']
+      interval: 10s
+      timeout: 10s
+      retries: 5
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 384M
+
+  brokencrystals-grpcwebproxy:
+    image: webis/grpcwebproxy:0.14.0
+    container_name: hackthacker-labs-brokencrystals-grpcwebproxy
+    restart: always
+    networks:
+      hackthacker:
+        aliases:
+          - grpcwebproxy
+    command:
+      - grpcwebproxy
+      - '--backend_addr=brokencrystals-app:5000'
+      - '--run_tls_server=false'
+      - '--run_http_server=true'
+      - '--server_http_debug_port=8081'
+      - '--allow_all_origins'
+    depends_on:
+      brokencrystals-app:
+        condition: service_healthy
+    deploy:
+      resources:
+        limits:
+          cpus: '0.1'
+          memory: 64M
+
+  # ----------------------------------------------------------------------------
+  # DVWS Node Tier
+  # ----------------------------------------------------------------------------
+  dvws-mongo:
+    image: mongo:4.0.4
+    container_name: hackthacker-labs-dvws-mongo
+    restart: unless-stopped
+    networks:
+      hackthacker:
+        aliases:
+          - dvws-mongo
+    healthcheck:
+      test: echo 'db.runCommand("ping").ok' | mongo localhost:27017/test --quiet
+      interval: 15s
+      timeout: 10s
+      retries: 5
+    deploy:
+      resources:
+        limits:
+          cpus: '0.25'
+          memory: 128M
+
+  dvws-mysql:
+    image: mysql:8
+    container_name: hackthacker-labs-dvws-mysql
+    restart: unless-stopped
+    networks:
+      hackthacker:
+        aliases:
+          - dvws-mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: mysecretpassword
+      MYSQL_DATABASE: dvws_sqldb
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-uroot", "-pmysecretpassword"]
+      interval: 15s
+      timeout: 10s
+      retries: 5
+    deploy:
+      resources:
+        limits:
+          cpus: '0.25'
+          memory: 256M
+
+  dvws-node:
+    build:
+      context: ./docker/dvws-node
+      dockerfile: Dockerfile
+    image: hackthacker-labs-dvws-node
+    container_name: hackthacker-labs-dvws-node
+    restart: unless-stopped
+    networks:
+      hackthacker:
+        aliases:
+          - dvws-node
+    environment:
+      WAIT_HOSTS: dvws-mysql:3306, dvws-mongo:27017
+      WAIT_HOSTS_TIMEOUT: 160
+      SQL_LOCAL_CONN_URL: dvws-mysql
+      MONGO_LOCAL_CONN_URL: mongodb://dvws-mongo:27017/node-dvws
+    depends_on:
+      dvws-mongo:
+        condition: service_healthy
+      dvws-mysql:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:80/ || exit 1"]
+      interval: 15s
+      timeout: 10s
+      retries: 5
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 256M
+
+  # ----------------------------------------------------------------------------
+  # Zero Health Tier
+  # ----------------------------------------------------------------------------
+  zerohealth-db:
+    image: postgres:14-alpine
+    container_name: hackthacker-labs-zerohealth-db
+    restart: unless-stopped
+    networks:
+      hackthacker:
+        aliases:
+          - zerohealth-db
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: zero_health
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    deploy:
+      resources:
+        limits:
+          cpus: '0.25'
+          memory: 128M
+
+  zerohealth-server:
+    build:
+      context: ./docker/zerohealth-server
+      dockerfile: Dockerfile
+    image: hackthacker-labs-zerohealth-server
+    container_name: hackthacker-labs-zerohealth-server
+    restart: unless-stopped
+    networks:
+      hackthacker:
+        aliases:
+          - zerohealth-server
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=zero_health
+      - POSTGRES_HOST=zerohealth-db
+      - POSTGRES_PORT=5432
+      - JWT_SECRET=your-secret-key-here
+      - LLM_PROVIDER=none
+    depends_on:
+      zerohealth-db:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:5000/api/config || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 256M
+
+  zerohealth-client:
+    build:
+      context: ./docker/zerohealth-client
+      dockerfile: Dockerfile
+    image: hackthacker-labs-zerohealth-client
+    container_name: hackthacker-labs-zerohealth-client
+    restart: unless-stopped
+    networks:
+      - hackthacker
+    depends_on:
+      zerohealth-server:
+        condition: service_healthy
+    deploy:
+      resources:
+        limits:
+          cpus: '0.25'
+          memory: 128M
+
+  # ----------------------------------------------------------------------------
+  # Damn Vulnerable RESTaurant API Game Tier
+  # ----------------------------------------------------------------------------
+  restaurant-db:
+    image: postgres:15.4-alpine
+    container_name: hackthacker-labs-restaurant-db
+    restart: unless-stopped
+    networks:
+      hackthacker:
+        aliases:
+          - restaurant-db
+    environment:
+      - POSTGRES_USER=admin
+      - POSTGRES_PASSWORD=password
+      - POSTGRES_DB=restaurant
+      - PGDATA=/var/lib/postgresql/data/pgdata
+    healthcheck:
+      test: ["CMD", "sh", "-c", "pg_isready -d restaurant -U admin"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    deploy:
+      resources:
+        limits:
+          cpus: '0.25'
+          memory: 128M
+
+  restaurant-app:
+    build:
+      context: ./docker/restaurant
+      dockerfile: Dockerfile
+    image: hackthacker-labs-restaurant-app
+    container_name: hackthacker-labs-restaurant-app
+    restart: unless-stopped
+    networks:
+      hackthacker:
+        aliases:
+          - restaurant-app
+    environment:
+      - POSTGRES_USER=admin
+      - POSTGRES_PASSWORD=password
+      - POSTGRES_SERVER=restaurant-db
+      - POSTGRES_PORT=5432
+      - POSTGRES_DB=restaurant
+    depends_on:
+      restaurant-db:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8091/docs || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 256M
 
 
