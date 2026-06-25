@@ -11,6 +11,6 @@ EXPOSE 3000
 ENV PORT=3000 \
     NODE_ENV=production
 
-# Embedded healthcheck using node
+# Embedded healthcheck using node (exec form is required as distroless has no shell)
 HEALTHCHECK --interval=30s --timeout=5s --start-period=15s --retries=3 \
-  CMD node -e "require('http').get('http://localhost:3000/', (res) => { if (res.statusCode === 200) process.exit(0); else process.exit(1); }).on('error', (e) => { process.exit(1); })"
+  CMD ["/nodejs/bin/node", "-e", "require('http').get('http://localhost:3000/', (res) => { if (res.statusCode === 200) process.exit(0); else process.exit(1); }).on('error', (e) => { process.exit(1); })"]
