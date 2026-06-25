@@ -14,12 +14,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - *(build)* Remove BuildKit cache mount and correct sbom-action input ([6ce51e2](https://github.com/hackThacker/OWASP-AttackForge/commit/6ce51e214c89566498f4c67d6202c9e0293802fb))
 
+- *(attest)* Align service tags and retrieve image digests for SLSA attestation ([708484c](https://github.com/hackThacker/OWASP-AttackForge/commit/708484c3361e10649e51bcfd014f26044468b66b))
+
 
 ### Miscellaneous Chores
 
 - *(changelog)* Update CHANGELOG.md for v1.1.0 [skip ci] ([6bfbd73](https://github.com/hackThacker/OWASP-AttackForge/commit/6bfbd7378948c1aa027ad74780a8f17157d3b3db))
 
 - *(changelog)* Update CHANGELOG.md for v1.2.0 [skip ci] ([b8c1429](https://github.com/hackThacker/OWASP-AttackForge/commit/b8c1429531a708648dcb5a5c8ee171d8795a63b1))
+
+- *(changelog)* Update CHANGELOG.md for v1.2.0 [skip ci] ([c7dbe53](https://github.com/hackThacker/OWASP-AttackForge/commit/c7dbe5372711bce774123ee6ba7d912270700697))
 
 
 ## [1.1.0] - 2026-06-25
