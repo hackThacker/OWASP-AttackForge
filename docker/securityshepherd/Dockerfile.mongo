@@ -6,7 +6,7 @@ RUN apk add --no-cache git
 WORKDIR /src
 RUN git clone --depth 1 https://github.com/OWASP/SecurityShepherd.git .
 
-FROM mongo:4.4
+FROM mongo:8.2
 COPY --from=cloner /src/src/main/resources/mongodb/moduleSchemas.js /docker-entrypoint-initdb.d/moduleSchemas.js
 USER root
 RUN sed -i 's/\/\/REMOVE/ /g' /docker-entrypoint-initdb.d/moduleSchemas.js
