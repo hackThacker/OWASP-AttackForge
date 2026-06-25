@@ -17,7 +17,10 @@ WORKDIR /app
 
 COPY --from=git-cloner /src /app
 
-RUN npm install
+# Install build dependencies for compiling native node modules (like libxmljs)
+RUN apk add --no-cache --virtual .build-deps build-base python3 && \
+    npm install && \
+    apk del .build-deps
 
 # Make scripts executable
 RUN chmod +x scripts/*.sh

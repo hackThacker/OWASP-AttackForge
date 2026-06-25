@@ -34,7 +34,7 @@ COPY --from=builder /app/requirements.txt /app/requirements.txt
 RUN pip install --no-cache-dir -r requirements.txt
 
 # Allow app user to run find with root permissions via sudo for the challenge
-RUN echo 'ALL ALL=(ALL) NOPASSWD: /usr/bin/find' | sudo tee /etc/sudoers.d/find_nopasswd > /dev/null
+RUN mkdir -p /etc/sudoers.d && echo 'ALL ALL=(ALL) NOPASSWD: /usr/bin/find' > /etc/sudoers.d/find_nopasswd
 
 # Create a dedicated non-root user
 RUN useradd -m app && chown -R app:app /app
