@@ -166,30 +166,8 @@ jobs:
           fi
           
           echo "Appending registry status and digest checksums to release notes..."
-          cat <<EOF >> RELEASE_NOTES_DRAFT.md
-
-          ## Packages
-
-          Docker Hub:
-          \`\`\`bash
-          ${DOCKERHUB_PULL_CMD}
-          \`\`\`
-
-          GHCR:
-          \`\`\`bash
-          docker pull ghcr.io/${GHCR_ORG}/attackforge:${TAG}
-          \`\`\`
-
-          ## Checksums
-
-          Image Digest:
-          \`${DIGEST}\`
-
-          ## Registry Status
-
-          ${DOCKERHUB_STATUS:+"${DOCKERHUB_STATUS}"}
-          ✓ GitHub Container Registry Published
-          EOF
+          printf '\n## Packages\n\nDocker Hub:\n```bash\n%s\n```\n\nGHCR:\n```bash\ndocker pull ghcr.io/%s/attackforge:%s\n```\n\n## Checksums\n\nImage Digest:\n`%s`\n\n## Registry Status\n\n%s\n✓ GitHub Container Registry Published\n' \
+            "${DOCKERHUB_PULL_CMD}" "${GHCR_ORG}" "${TAG}" "${DIGEST}" "${DOCKERHUB_STATUS}" >> RELEASE_NOTES_DRAFT.md
           
           echo "Finalizing and publishing release..."
           gh release edit "${TAG}" --title "${{ needs.production.outputs.release_title }}" --notes-file RELEASE_NOTES_DRAFT.md --draft=false
