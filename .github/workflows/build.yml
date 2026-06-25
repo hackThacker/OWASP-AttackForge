@@ -186,6 +186,7 @@ jobs:
         uses: docker/setup-buildx-action@v3
 
       - name: Log in to Docker Hub
+        if: ${{ secrets.DOCKERHUB_USERNAME != '' }}
         uses: docker/login-action@v3
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
@@ -209,6 +210,10 @@ jobs:
             TAG_ARGS=""
             for t in $TAGS_LIST; do
               if [ -n "$t" ]; then
+                if [[ "$t" =~ docker.io/ ]] && [ -z "${{ secrets.DOCKERHUB_USERNAME }}" ]; then
+                  echo "Skipping Docker Hub tag: $t"
+                  continue
+                fi
                 TAG_ARGS="$TAG_ARGS -t $t"
               fi
             done
@@ -239,5 +244,7 @@ jobs:
           echo "* **Dockerfile**: \`${{ matrix.service.dockerfile }}\`" >> $GITHUB_STEP_SUMMARY
           echo "* **Architectures**: \`linux/amd64, linux/arm64\`" >> $GITHUB_STEP_SUMMARY
           echo "* **Pushed Registries**:" >> $GITHUB_STEP_SUMMARY
-          echo "  - Docker Hub (\`docker.io/${{ secrets.DOCKERHUB_USERNAME }}/attackforge-${{ matrix.service.image_name }}\`)" >> $GITHUB_STEP_SUMMARY
+          if [ -n "${{ secrets.DOCKERHUB_USERNAME }}" ]; then
+            echo "  - Docker Hub (\`docker.io/${{ secrets.DOCKERHUB_USERNAME }}/attackforge-${{ matrix.service.image_name }}\`)" >> $GITHUB_STEP_SUMMARY
+          fi
           echo "  - GitHub Container Registry (\`ghcr.io/${{ github.repository_owner }}/attackforge-${{ matrix.service.image_name }}\`)" >> $GITHUB_STEP_SUMMARY
