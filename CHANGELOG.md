@@ -5,6 +5,33 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.3.0] - 2026-06-27
+
+
+### Bug Fixes
+
+- *(juiceshop)* Use exec-form for healthcheck to avoid /bin/sh dependency in distroless image ([46ff93f](https://github.com/hackThacker/OWASP-AttackForge/commit/46ff93fbac6ea81e4fb744ab19ba2d30fd62ad21))
+
+
+### Documentation
+
+- Update readme with interactive landing portal instructions ([f78e90e](https://github.com/hackThacker/OWASP-AttackForge/commit/f78e90eb751a8c21fb0b48c832ce0687bf92dca0))
+
+
+### Features
+
+- *(portal)* Serve static landing page for all vulnerable labs from root domain ([0aefdb1](https://github.com/hackThacker/OWASP-AttackForge/commit/0aefdb1465db50db57914539b89c4c4187ebb20e))
+
+- Implement smart suggestions and container controls on dashboard ([bf18cb4](https://github.com/hackThacker/OWASP-AttackForge/commit/bf18cb4684535a0f62a981e7798135b310548690))
+
+- Integrate Go Clean Architecture backend & optimize Docker containers ([fd3fc93](https://github.com/hackThacker/OWASP-AttackForge/commit/fd3fc93aed6392d6108f207f95c4098e41b44652))
+
+
+### Miscellaneous Chores
+
+- *(changelog)* Update CHANGELOG.md for v1.2.0 [skip ci] ([34efefb](https://github.com/hackThacker/OWASP-AttackForge/commit/34efefb34f9f719e3e69e18496a0f002db6c7645))
+
+
 ## [1.2.0] - 2026-06-25
 
 
