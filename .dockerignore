@@ -1,13 +1,42 @@
-# Git
+# Git and GitHub
 .git
 .gitignore
+.github
 
 # Environment and Secrets
 .env
 *.env
 *.log
+logs/
 
-# Scripts and installers
+# Caches and Node
+node_modules/
+.npm/
+.eslintcache
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# OS and IDE Files
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# Build and Temp files
+tmp/
+temp/
+dist/
+build/
+bin/
+obj/
+server.exe
+*.local
 
 # Local volumes and host builds
 docker/db/data

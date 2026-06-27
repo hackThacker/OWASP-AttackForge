@@ -1,0 +1,63 @@
+syntax = "proto3";
+
+package pb;
+
+option go_package = "github.com/hackThacker/OWASP-AttackForge/backend/pb";
+
+service AttackForgeService {
+    rpc GetMetrics(MetricsRequest) returns (MetricsResponse);
+    rpc GetTools(ToolsRequest) returns (ToolsResponse);
+    rpc ControlTool(ControlToolRequest) returns (ControlToolResponse);
+    rpc StreamState(StreamStateRequest) returns (stream StreamStateResponse);
+}
+
+message MetricsRequest {}
+
+message MetricsResponse {
+    int32 total_containers = 1;
+    int32 running_containers = 2;
+    int32 health_percentage = 3;
+    double cpu_usage = 4;
+    double memory_usage = 5;
+}
+
+message Credentials {
+    string username = 1;
+    string password = 2;
+}
+
+message Tool {
+    string name = 1;
+    string subdomain = 2;
+    string icon = 3;
+    string description = 4;
+    repeated string protocols = 5;
+    string port = 6;
+    string uri = 7;
+    string category = 8;
+    Credentials credentials = 9;
+    string uptime = 10;
+    bool stopped = 11;
+}
+
+message ToolsRequest {}
+
+message ToolsResponse {
+    repeated Tool tools = 1;
+}
+
+message ControlToolRequest {
+    string subdomain = 1;
+    string action = 2; // "start", "stop", "restart"
+}
+
+message ControlToolResponse {
+    string status = 1; // "success" or error message
+}
+
+message StreamStateRequest {}
+
+message StreamStateResponse {
+    MetricsResponse metrics = 1;
+    repeated Tool tools = 2;
+}

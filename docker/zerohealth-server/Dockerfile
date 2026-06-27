@@ -7,24 +7,30 @@ WORKDIR /src
 RUN git clone --depth 1 https://github.com/aligorithm/Zero-Health.git .
 
 # ==============================================================================
-# STAGE 2: Runtime
+# STAGE 2: Builder
+# ==============================================================================
+FROM node:18-alpine AS builder
+WORKDIR /app
+COPY --from=git-cloner /src /app
+# Install build dependencies for compiling native node modules
+RUN apk add --no-cache build-base python3 && \
+    npm ci --no-audit || npm install --no-audit
+
+# ==============================================================================
+# STAGE 3: Runtime
 # ==============================================================================
 FROM node:18-alpine
-
 RUN apk add --no-cache postgresql-client curl
 
 WORKDIR /app
-
 COPY --from=git-cloner /src /app
+COPY --from=builder /app/node_modules ./node_modules
 
-# Install build dependencies for compiling native node modules (like libxmljs)
-RUN apk add --no-cache --virtual .build-deps build-base python3 && \
-    npm install && \
-    apk del .build-deps
+# Make scripts executable and set ownership
+RUN chmod +x scripts/*.sh && \
+    chown -R node:node /app
 
-# Make scripts executable
-RUN chmod +x scripts/*.sh
-
+USER node
 EXPOSE 5000
 
 CMD ["node", "server.js"]

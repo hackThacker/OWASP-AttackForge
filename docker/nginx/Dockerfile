@@ -10,7 +10,7 @@ RUN mkdir -p /etc/nginx/ssl /etc/nginx/templates /var/cache/nginx /var/run /run 
 # Copy configuration template, entrypoint and static landing page
 COPY docker/nginx/default.conf.template /etc/nginx/templates/default.conf.template
 COPY docker/nginx/entrypoint.sh /usr/local/bin/entrypoint.sh
-COPY index.html /usr/share/nginx/html/index.html
+COPY docker/frontend/index.html /usr/share/nginx/html/index.html
 
 RUN chmod +x /usr/local/bin/entrypoint.sh
 

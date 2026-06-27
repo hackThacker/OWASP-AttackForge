@@ -2097,7 +2097,11 @@
             if (overrideIP && overrideIP.trim() !== '') {
                 return overrideIP.trim();
             }
-            return serverIP || window.location.hostname;
+            const hostname = window.location.hostname;
+            if (hostname === 'localhost' || hostname === '127.0.0.1') {
+                return 'hackthacker.lab';
+            }
+            return serverIP || hostname;
         }
 
         function promptForIPOverride() {
@@ -2264,16 +2268,16 @@
                 <div class="credentials-field">
                     <label>Username:</label>
                     <span>${tool.credentials.username}</span>
-                    \${tool.credentials.username !== 'None' ? `<button class="copy-btn" onclick="copyToClipboard('\${tool.credentials.username}')">Copy</button>` : ''}
+                    ${tool.credentials.username !== 'None' ? `<button class="copy-btn" onclick="copyToClipboard('${tool.credentials.username}')">Copy</button>` : ''}
                 </div>
                 <div class="credentials-field">
                     <label>Password:</label>
                     <span>${tool.credentials.password}</span>
-                    \${tool.credentials.password !== 'N/A' ? `<button class="copy-btn" onclick="copyToClipboard('\${tool.credentials.password}')">Copy</button>` : ''}
+                    ${tool.credentials.password !== 'N/A' ? `<button class="copy-btn" onclick="copyToClipboard('${tool.credentials.password}')">Copy</button>` : ''}
                 </div>`;
 
             document.getElementById('credentialsContent').innerHTML = credentialsHTML;
-            document.getElementById('credentialsToolName').textContent = `\${tool.name} Credentials`;
+            document.getElementById('credentialsToolName').textContent = `${tool.name} Credentials`;
             document.getElementById('credentialsModal').style.display = 'flex';
         }
 
@@ -2295,24 +2299,24 @@
             if (!tool) return;
 
             const currentIP = getServerIP();
-            const portSuffix = window.location.port ? `:\${window.location.port}` : '';
-            const hrefUrl = `https://\${tool.subdomain}.\${currentIP}\${portSuffix}\${tool.uri}`;
+            const portSuffix = window.location.port ? `:${window.location.port}` : '';
+            const hrefUrl = `https://${tool.subdomain}.${currentIP}${portSuffix}${tool.uri}`;
 
             const infoHTML = `
                 <div class="tool-info-section">
                     <h5><i class="fas fa-info-circle me-2"></i>Overview</h5>
-                    <p><strong>Description:</strong> \${tool.description}</p>
-                    <p><strong>Category:</strong> \${tool.category}</p>
-                    <p><strong>URL:</strong> <code>\${hrefUrl}</code></p>
+                    <p><strong>Description:</strong> ${tool.description}</p>
+                    <p><strong>Category:</strong> ${tool.category}</p>
+                    <p><strong>URL:</strong> <code>${hrefUrl}</code></p>
                 </div>
                 <div class="tool-info-section">
                     <h5><i class="fas fa-server me-2"></i>Container Status</h5>
-                    <p><strong>Status:</strong> <span class="badge bg-success">running</span></p>
-                    <p><strong>Uptime:</strong> Up 100%</p>
-                    <p><strong>Container Name:</strong> <code>hackthacker-labs-\${tool.subdomain}</code></p>
+                    <p><strong>Status:</strong> <span class="badge ${tool.stopped ? 'bg-danger' : 'bg-success'}">${tool.stopped ? 'stopped' : 'running'}</span></p>
+                    <p><strong>Uptime:</strong> ${tool.uptime || (tool.stopped ? 'Stopped' : 'Up 100%')}</p>
+                    <p><strong>Container Name:</strong> <code>hackthacker-labs-${tool.subdomain}</code></p>
                 </div>`;
 
-            document.getElementById('toolInfoName').textContent = `\${tool.name} Details`;
+            document.getElementById('toolInfoName').textContent = `${tool.name} Details`;
             document.getElementById('toolInfoBody').innerHTML = infoHTML;
             document.getElementById('toolInfoModal').style.display = 'flex';
         }
@@ -2321,103 +2325,111 @@
             document.getElementById('toolInfoModal').style.display = 'none';
         }
 
-        function updateMiniDashboard() {
-            const runningCount = allTools.filter(t => !t.stopped).length;
-            document.getElementById('miniContainers').textContent = `${runningCount} / ${allTools.length}`;
-            
-            const healthPercentage = allTools.length > 0 ? Math.round((runningCount / allTools.length) * 100) : 0;
-            document.getElementById('miniHealth').textContent = `${healthPercentage}%`;
-            
-            // CPU/Memory simulation based on running containers
-            const cpu = runningCount > 0 ? Math.floor(Math.random() * 6) + (runningCount * 4) : 0.5;
-            const mem = runningCount > 0 ? (3.2 + (runningCount * 0.35) + Math.random() * 0.2).toFixed(1) : "0.2";
-            document.getElementById('miniCpu').textContent = runningCount > 0 ? `${cpu}%` : "0.5%";
-            document.getElementById('miniMemory').textContent = runningCount > 0 ? `${mem} GB` : "0.2 GB";
+        let socket = null;
+
+        function connectWebSocket() {
+            const wsProtocol = window.location.protocol === 'https:' ? 'wss:' : 'ws';
+            const wsUrl = `${wsProtocol === 'wss:' ? 'wss' : 'ws'}://${window.location.host}/ws`;
+
+            socket = new WebSocket(wsUrl);
+
+            socket.onopen = () => {
+                console.log("WebSocket connected successfully");
+            };
+
+            socket.onmessage = (event) => {
+                try {
+                    const data = JSON.parse(event.data);
+                    if (data.type === 'state') {
+                        const payload = data.payload;
+                        if (payload.tools) {
+                            allTools = allTools.map(t => {
+                                const backendTool = payload.tools.find(bt => bt.subdomain === t.subdomain);
+                                if (backendTool) {
+                                    return {
+                                        ...t,
+                                        stopped: backendTool.stopped,
+                                        uptime: backendTool.uptime
+                                    };
+                                }
+                                return t;
+                            });
+
+                            // Re-apply filter and render tools in UI
+                            const searchInput = document.getElementById('toolSearch');
+                            const categoryFilter = document.getElementById('categoryFilter');
+                            const statusFilter = document.getElementById('statusFilter');
+                            if (searchInput && categoryFilter && statusFilter) {
+                                const query = searchInput.value.toLowerCase();
+                                const category = categoryFilter.value;
+                                const status = statusFilter.value;
+                                const filtered = allTools.filter(tool => {
+                                    const matchesSearch = tool.name.toLowerCase().includes(query) || tool.description.toLowerCase().includes(query);
+                                    const matchesCategory = category === 'all' || tool.category === category;
+                                    const matchesStatus = status === 'all' || 
+                                                         (status === 'running' && !tool.stopped) || 
+                                                         (status === 'stopped' && tool.stopped);
+                                    return matchesSearch && matchesCategory && matchesStatus;
+                                });
+                                renderTools(filtered);
+                            } else {
+                                renderTools(allTools);
+                            }
+                        }
+                        if (payload.metrics) {
+                            document.getElementById('miniContainers').textContent = `${payload.metrics.runningContainers} / ${payload.metrics.totalContainers}`;
+                            document.getElementById('miniHealth').textContent = `${payload.metrics.healthPercentage}%`;
+                            document.getElementById('miniCpu').textContent = `${payload.metrics.cpuUsage}%`;
+                            document.getElementById('miniMemory').textContent = `${payload.metrics.memoryUsage} GB`;
+                        }
+                    }
+                } catch (err) {
+                    console.error("Failed to parse WebSocket message:", err);
+                }
+            };
+
+            socket.onclose = () => {
+                console.log("WebSocket disconnected, reconnecting in 5s...");
+                setTimeout(connectWebSocket, 5000);
+            };
+
+            socket.onerror = (err) => {
+                console.error("WebSocket error:", err);
+            };
         }
 
-        // Live Tool Control Handlers (Stateful simulation matching the project design)
-        function controlTool(toolName, action) {
+        async function controlTool(toolName, action) {
             const tool = allTools.find(t => t.name === toolName);
             if (!tool) return;
 
             showNotification(`${action.charAt(0).toUpperCase() + action.slice(1)}ing ${toolName} container...`, 'info');
 
-            setTimeout(() => {
-                if (action === 'stop') {
-                    tool.stopped = true;
-                    showNotification(`${toolName} stopped successfully!`, 'success');
-                } else if (action === 'start') {
-                    tool.stopped = false;
-                    showNotification(`${toolName} is now running!`, 'success');
-                } else if (action === 'restart') {
-                    tool.stopped = false;
-                    showNotification(`${toolName} container restarted successfully!`, 'success');
+            try {
+                const response = await fetch(`/api/tools/${tool.subdomain}/${action}`, {
+                    method: 'POST'
+                });
+                if (!response.ok) {
+                    throw new Error(await response.text());
                 }
-                renderTools(allTools);
-                updateMiniDashboard();
-            }, 1000);
+                showNotification(`${toolName} ${action} request sent successfully!`, 'success');
+            } catch (err) {
+                console.error(err);
+                showNotification(`Failed to ${action} ${toolName}: ${err.message}`, 'danger');
+            }
         }
 
-        // Smart Suggestions
-        const suggestions = [
-            {
-                text: "Configure crAPI to learn about Broken Object Level Authorization (BOLA).",
-                category: "API SECURITY",
-                icon: "fas fa-shield-alt"
-            },
-            {
-                text: "Test Juice Shop for DOM-based Cross-Site Scripting (XSS) and SQL Injection.",
-                category: "WEB APPLICATION",
-                icon: "fas fa-bug"
-            },
-            {
-                text: "Exploit Tomcat Manager Console with brute-force to achieve Remote Code Execution.",
-                category: "INFRASTRUCTURE",
-                icon: "fas fa-server"
-            },
-            {
-                text: "Investigate BrokenCrystals AI and Vector DB vulnerabilities using Ollama.",
-                category: "AI SECURITY",
-                icon: "fas fa-brain"
-            },
-            {
-                text: "Examine ZeroHealth to understand medical application data leaks.",
-                category: "HEALTHCARE SEC",
-                icon: "fas fa-heartbeat"
-            },
-            {
-                text: "Solve WrongSecrets challenges to find hardcoded credentials.",
-                category: "CLOUD SECURITY",
-                icon: "fas fa-key"
-            },
-            {
-                text: "Use Security Shepherd challenges to practice mobile and web API security.",
-                category: "TRAINING",
-                icon: "fas fa-graduation-cap"
-            },
-            {
-                text: "Analyze RESTaurant Swagger API playground for injection flaws.",
-                category: "API SECURITY",
-                icon: "fas fa-utensils"
-            },
-            {
-                text: "Practice session hijacking and command injection using DVWA.",
-                category: "WEB APPLICATION",
-                icon: "fas fa-unlock-alt"
-            },
-            {
-                text: "Audit the Nginx router logs for suspicious penetration testing traffic.",
-                category: "BEST PRACTICE",
-                icon: "fas fa-eye"
-            }
-        ];
-
-        function populateSuggestions() {
+        async function populateSuggestions() {
             const container = document.getElementById('suggestionsContainer');
-            if (container) {
+            if (!container) return;
+
+            try {
+                const response = await fetch('/api/suggestions');
+                if (!response.ok) throw new Error();
+                const suggestions = await response.json();
+                
                 container.innerHTML = '';
-                const shuffled = [...suggestions].sort(() => 0.5 - Math.random());
-                const selected = shuffled.slice(0, 4); // Show 4 suggestions like the image
+                const shuffled = suggestions.sort(() => 0.5 - Math.random());
+                const selected = shuffled.slice(0, 4);
                 selected.forEach(s => {
                     const item = document.createElement('div');
                     item.className = 'suggestion-item';
@@ -2430,6 +2442,8 @@
                     `;
                     container.appendChild(item);
                 });
+            } catch (err) {
+                console.error("Failed to load suggestions:", err);
             }
         }
 
@@ -2447,7 +2461,9 @@
                 const filtered = allTools.filter(tool => {
                     const matchesSearch = tool.name.toLowerCase().includes(query) || tool.description.toLowerCase().includes(query);
                     const matchesCategory = category === 'all' || tool.category === category;
-                    const matchesStatus = status === 'all' || status === 'running';
+                    const matchesStatus = status === 'all' || 
+                                         (status === 'running' && !tool.stopped) || 
+                                         (status === 'stopped' && tool.stopped);
 
                     return matchesSearch && matchesCategory && matchesStatus;
                 });
@@ -2483,61 +2499,40 @@
         });
 
         // Bulk Actions
-        // Bulk Actions
-        document.getElementById('bulkStartBtn').addEventListener('click', () => {
-            showNotification(`Starting ${selectedTools.size} selected labs...`, 'info');
-            setTimeout(() => {
-                selectedTools.forEach(toolName => {
-                    const tool = allTools.find(t => t.name === toolName);
-                    if (tool) tool.stopped = false;
-                });
-                renderTools(allTools);
-                updateMiniDashboard();
-                showNotification('All selected labs started!', 'success');
-            }, 1200);
-        });
+        async function runBulkAction(action) {
+            if (selectedTools.size === 0) return;
+            showNotification(`Sending bulk ${action} request for ${selectedTools.size} labs...`, 'info');
 
-        document.getElementById('bulkRestartBtn').addEventListener('click', () => {
-            showNotification(`Restarting ${selectedTools.size} selected labs...`, 'info');
-            setTimeout(() => {
-                selectedTools.forEach(toolName => {
-                    const tool = allTools.find(t => t.name === toolName);
-                    if (tool) tool.stopped = false;
-                });
-                renderTools(allTools);
-                updateMiniDashboard();
-                showNotification('All selected labs restarted!', 'success');
-            }, 1200);
-        });
+            const promises = Array.from(selectedTools).map(async (toolName) => {
+                const tool = allTools.find(t => t.name === toolName);
+                if (!tool) return;
+                try {
+                    const response = await fetch(`/api/tools/${tool.subdomain}/${action}`, {
+                        method: 'POST'
+                    });
+                    if (!response.ok) {
+                        throw new Error(await response.text());
+                    }
+                } catch (err) {
+                    console.error(err);
+                }
+            });
 
-        document.getElementById('bulkStopBtn').addEventListener('click', () => {
-            showNotification(`Stopping ${selectedTools.size} selected labs...`, 'info');
-            setTimeout(() => {
-                selectedTools.forEach(toolName => {
-                    const tool = allTools.find(t => t.name === toolName);
-                    if (tool) tool.stopped = true;
-                });
-                renderTools(allTools);
-                updateMiniDashboard();
-                showNotification('All selected labs stopped!', 'success');
-            }, 1200);
-        });
+            await Promise.all(promises);
+            showNotification(`Bulk ${action} request completed successfully!`, 'success');
+        }
+
+        document.getElementById('bulkStartBtn').addEventListener('click', () => runBulkAction('start'));
+        document.getElementById('bulkRestartBtn').addEventListener('click', () => runBulkAction('restart'));
+        document.getElementById('bulkStopBtn').addEventListener('click', () => runBulkAction('stop'));
 
         // Initialize on load
         window.addEventListener('load', async () => {
-            // Assign random mock uptimes to staticTools
-            const uptimes = ["3 hours", "12 minutes", "47 minutes", "5 minutes", "2 hours", "About a minute", "29 minutes", "16 minutes"];
-            staticTools.forEach(t => {
-                t.uptime = uptimes[Math.floor(Math.random() * uptimes.length)];
-                t.stopped = false;
-            });
-            
             updateIPDisplay();
             setupFilters();
             renderTools(allTools);
-            updateMiniDashboard();
             populateSuggestions();
-            setInterval(updateMiniDashboard, 5000);
+            connectWebSocket();
         });
         </script>
 </body>

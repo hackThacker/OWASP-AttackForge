@@ -7,9 +7,11 @@ WORKDIR /src
 RUN git clone --depth 1 https://github.com/snoopysecurity/dvws-node.git .
 
 # ==============================================================================
-# STAGE 2: Runtime
+# STAGE 2: Builder
 # ==============================================================================
-FROM node:22-slim
+FROM node:22-slim AS builder
+
+WORKDIR /build
 
 # Install build dependencies for native node addons
 RUN apt-get update && apt-get install -y --no-install-recommends \
@@ -17,21 +19,32 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     make \
     g++ \
     build-essential \
-    curl \
-    ca-certificates \
     && rm -rf /var/lib/apt/lists/*
+
+# Copy package files and source code
+COPY --from=git-cloner /src /build
+
+# Install dependencies including compilation of native modules
+RUN npm ci --no-audit || npm install --no-audit
+
+# Download wait script
+ADD https://github.com/ufoscout/docker-compose-wait/releases/download/2.9.0/wait /build/wait
+RUN chmod +x /build/wait
+
+# ==============================================================================
+# STAGE 3: Runtime
+# ==============================================================================
+FROM node:22-slim
 
 WORKDIR /home/dvws-node
 
-COPY --from=git-cloner /src /home/dvws-node
+# Copy built node_modules, wait, and source files from builder stage
+COPY --from=builder /build /home/dvws-node
 
-# Install package dependencies
-RUN npm install
+# Set non-root user permissions
+RUN chown -R node:node /home/dvws-node
 
-# Add wait script to coordinate database readiness
-ADD https://github.com/ufoscout/docker-compose-wait/releases/download/2.9.0/wait /wait
-RUN chmod +x /wait
-
+USER node
 EXPOSE 80 4000 9090
 
-CMD /wait && node startup_script.js && npm start
+CMD ["/home/dvws-node/wait", "&&", "node", "startup_script.js", "&&", "npm", "start"]

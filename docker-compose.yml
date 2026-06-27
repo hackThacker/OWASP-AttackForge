@@ -110,6 +110,35 @@ services:
       retries: 3
 
   # ----------------------------------------------------------------------------
+  # Central Control Backend (Go API, WebSockets & gRPC)
+  # ----------------------------------------------------------------------------
+  backend:
+    build:
+      context: ./docker/backend
+      dockerfile: Dockerfile
+    image: owasp-lab-toolkit-backend
+    container_name: hackthacker-labs-backend
+    restart: unless-stopped
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    networks:
+      - hackthacker
+    environment:
+      - DOMAIN=${DOMAIN:-hackthacker.lab}
+      - PORT=8081
+      - GRPC_PORT=50051
+    deploy:
+      resources:
+        limits:
+          cpus: '0.25'
+          memory: 128M
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  # ----------------------------------------------------------------------------
   # PHP Vulnerable Applications Tier
   # ----------------------------------------------------------------------------
   mutillidae:

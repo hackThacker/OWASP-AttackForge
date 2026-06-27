@@ -124,10 +124,14 @@ docker ps
 
 ## 🖥️ Interactive Landing Portal
 
-OWASP AttackForge includes a beautiful, pre-configured landing page portal that serves as your central command dashboard. From this dashboard, you can:
-* View the real-time status of all 17 vulnerable services.
-* Read the default credentials for each target application.
-* Launch any lab application or API playground in a single click.
+OWASP AttackForge includes a beautiful, pre-configured landing page portal that serves as your central command dashboard. The dashboard is powered by a high-performance **Go central control backend** that integrates directly with the Docker daemon via the official Go SDK. 
+
+### Central Command Dashboard Features:
+* **Live Status Dashboard**: Monitors running/stopped states, health checks, CPU, and memory foot-prints of all 17 vulnerable services in real-time.
+* **WebSocket Streams**: Automatically pushes event-driven system state updates to the UI without client-side polling.
+* **Control Actions**: Start, stop, or restart any container or group of containers in single-click or bulk operations directly from the web interface.
+* **gRPC Support**: Includes a complete gRPC api for programmatic control (port `50051`).
+* **Default Credentials & Documentation**: Displays the default credentials and categories for each target application.
 
 ### How to Access the Portal:
 1. **Local Access (No Hosts Entry Required):** Open your browser and navigate to **[https://localhost](https://localhost)**.
