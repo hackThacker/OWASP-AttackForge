@@ -2,7 +2,7 @@
 # OWASP Juice Shop - Rebranded & Hardened Image
 # ==============================================================================
 # Use official multi-arch Juice Shop image as the base to ensure native ARM64 & AMD64 support.
-FROM bkimminich/juice-shop:v17.1.1
+FROM bkimminich/juice-shop:v20.1.1
 
 # Enforce the exposed port
 EXPOSE 3000
